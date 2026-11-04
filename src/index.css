@@ -1,0 +1,225 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-serif: 'Fraunces Variable', Georgia, 'Times New Roman', serif;
+
+  --color-parchment: #f7f1e7;
+  --color-cream: #fbf7ef;
+  --color-sand: #ede2d0;
+  --color-sand-deep: #ddccb2;
+  --color-ink: #17231c;
+  --color-forest: #1b3327;
+  --color-forest-deep: #102119;
+  --color-forest-soft: #274534;
+  --color-moss: #5d7052;
+  --color-clay: #a34d2b;
+  --color-clay-dark: #833c21;
+  --color-copper: #b87333;
+  --color-copper-light: #d9a06a;
+  --color-stone: #7d7466;
+  --color-line: #d8cbb8;
+
+  --ease-museum: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 6rem;
+  }
+
+  body {
+    @apply bg-parchment font-sans text-ink antialiased;
+    font-feature-settings: 'ss01' 1, 'cv11' 1;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-serif;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background: var(--color-copper);
+    color: var(--color-cream);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-copper);
+    outline-offset: 3px;
+  }
+
+  img {
+    -webkit-user-drag: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .site-container {
+    @apply mx-auto w-full max-w-[1440px] px-5 sm:px-8 lg:px-12 xl:px-16;
+  }
+
+  .display {
+    font-family: var(--font-serif);
+    font-variation-settings: 'opsz' 72, 'SOFT' 0, 'WONK' 0;
+  }
+
+  .display-soft {
+    font-family: var(--font-serif);
+    font-variation-settings: 'opsz' 120, 'SOFT' 40, 'WONK' 0;
+  }
+
+  .eyebrow {
+    @apply text-[11px] font-semibold uppercase tracking-[0.26em];
+  }
+
+  .input-base {
+    @apply w-full rounded-sm border border-line bg-cream px-4 py-3 text-[15px] text-ink placeholder:text-stone/70 transition duration-200 focus:border-copper focus:outline-none focus:ring-2 focus:ring-copper/20;
+  }
+
+  .input-error {
+    @apply border-clay focus:border-clay focus:ring-clay/15;
+  }
+
+  .field-label {
+    @apply mb-2 block text-[12px] font-semibold uppercase tracking-[0.14em] text-ink/75;
+  }
+
+  .field-error {
+    @apply mt-1.5 flex items-start gap-1.5 text-[12.5px] font-medium leading-snug text-clay;
+  }
+
+  .img-zoom img {
+    transition: transform 900ms var(--ease-museum);
+  }
+
+  .img-zoom:hover img,
+  .img-zoom:focus-visible img {
+    transform: scale(1.035);
+  }
+
+  .texture-lines {
+    background-image: repeating-linear-gradient(
+      115deg,
+      transparent 0,
+      transparent 34px,
+      rgb(247 241 231 / 0.035) 34px,
+      rgb(247 241 231 / 0.035) 35px
+    );
+  }
+
+  .gallery-columns > * {
+    break-inside: avoid;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .balance {
+    text-wrap: balance;
+  }
+
+  .animate-fade-up {
+    animation: fade-up 700ms var(--ease-museum) both;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 500ms ease-out both;
+  }
+
+  .animate-shimmer {
+    animation: shimmer 1.8s linear infinite;
+    background-size: 200% 100%;
+  }
+
+  .animate-soft-pulse {
+    animation: soft-pulse 2.4s ease-in-out infinite;
+  }
+
+  .animate-progress {
+    animation: progress 1.6s ease-in-out infinite;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes soft-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgb(93 112 82 / 0.45);
+  }
+  50% {
+    opacity: 0.75;
+    box-shadow: 0 0 0 5px rgb(93 112 82 / 0);
+  }
+}
+
+@keyframes progress {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(30%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}

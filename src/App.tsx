@@ -21,14 +21,22 @@ export default function App() {
       <Header />
       <main id="conteudo">
         <Hero />
-        <AboutMuseum />
-        <ParallaxBand src="/images/museu/museu-03.jpg" eyebrow="Memória viva" quote="Cada objeto guarda|uma voz da Amazônia." />
-        <Collection />
-        <Exhibitions />
         <Gallery />
-        <ParallaxBand src="/images/museu/museu-05.jpg" eyebrow="Conhecer para preservar" quote="Quem conhece sua história|cuida do seu território." />
-        <Education />
+        <Collection />
         <Contribute />
+        <ParallaxBand
+          src="/images/museu/museu-03.jpg"
+          eyebrow="Memória viva"
+          quote="Cada objeto guarda|uma voz da Amazônia."
+        />
+        <Exhibitions />
+        <AboutMuseum />
+        <ParallaxBand
+          src="/images/museu/museu-05.jpg"
+          eyebrow="Conhecer para preservar"
+          quote="Quem conhece sua história|cuida do seu território."
+        />
+        <Education />
         <Visit />
       </main>
       <Footer />

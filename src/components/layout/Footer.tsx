@@ -44,14 +44,6 @@ export function Footer() {
                   </a>
                 </li>
               ))}
-              <li>
-                <a
-                  href="#contribua"
-                  className="text-parchment/80 transition hover:text-copper-light"
-                >
-                  Contribua com o Museu
-                </a>
-              </li>
             </ul>
           </div>
 

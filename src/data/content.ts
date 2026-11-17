@@ -14,22 +14,21 @@ export const photoCredit = 'Prefeitura de Parauapebas / Assessoria de Comunicaç
 
 export const navItems = [
   { id: 'inicio', label: 'Início', href: '#inicio' },
-  { id: 'museu', label: 'O Museu', href: '#museu' },
+  { id: 'galeria', label: 'Registros', href: '#galeria' },
   { id: 'acervo', label: 'Acervo', href: '#acervo' },
-  { id: 'exposicoes', label: 'Exposições', href: '#exposicoes' },
-  { id: 'galeria', label: 'Galeria', href: '#galeria' },
-  { id: 'educacao', label: 'Educação e Cultura', href: '#educacao' },
-  { id: 'visite', label: 'Visite-nos', href: '#visite' },
+  { id: 'contribua', label: 'Enviar Registro', href: '#contribua' },
+  { id: 'museu', label: 'História Local', href: '#museu' },
+  { id: 'visite', label: 'Visitação', href: '#visite' },
 ] as const
 
 export const sectionIds = [
   'inicio',
-  'museu',
-  'acervo',
-  'exposicoes',
   'galeria',
-  'educacao',
+  'acervo',
   'contribua',
+  'exposicoes',
+  'museu',
+  'educacao',
   'visite',
 ] as const
 

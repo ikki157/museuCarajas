@@ -78,7 +78,7 @@ export function AboutMuseum() {
         <div className="grid lg:grid-cols-12 lg:gap-12 xl:gap-16">
           <div className="rounded-b-[40px] bg-cream px-6 pb-14 pt-16 sm:px-10 lg:col-span-5 lg:-mb-14 lg:px-12 lg:pb-16 lg:pt-24">
             <Reveal>
-              <p className="eyebrow text-clay">O Museu</p>
+              <p className="eyebrow text-clay">Contexto Institucional · Parauapebas</p>
               <h2
                 id="museu-title"
                 className="display mt-5 text-[clamp(2.1rem,3.6vw,3.2rem)] font-medium leading-[1.04] tracking-[-0.025em] text-ink"

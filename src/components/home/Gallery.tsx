@@ -204,7 +204,7 @@ export function Gallery() {
     <section
       id="galeria"
       aria-labelledby="galeria-title"
-      className="relative overflow-hidden bg-parchment py-24 lg:py-32"
+      className="relative overflow-hidden bg-parchment py-28 lg:py-36"
     >
       <div className="site-container">
         <div className="grid gap-8 lg:grid-cols-12 lg:items-end lg:gap-12">

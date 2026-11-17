@@ -9,7 +9,7 @@ export function Contribute() {
     <section
       id="contribua"
       aria-labelledby="contribua-title"
-      className="relative overflow-hidden bg-sand py-24 lg:py-32"
+      className="relative overflow-hidden bg-sand py-28 lg:py-36"
     >
       <div className="site-container">
         <div className="grid gap-14 lg:grid-cols-12 lg:gap-16 xl:gap-20">

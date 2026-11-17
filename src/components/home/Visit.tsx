@@ -16,7 +16,7 @@ export function Visit() {
           <div className="lg:col-span-7">
             <Reveal>
               <SectionHeading
-                eyebrow="Visite-nos"
+                eyebrow="Visitação Presencial · Sede Física"
                 title="Planeje sua visita."
                 titleId="visite-title"
               />

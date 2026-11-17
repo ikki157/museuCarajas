@@ -60,8 +60,8 @@ export function Header() {
   // Navegação desktop dividida em duas zonas para equilibrar o layout 3 colunas.
   // "Início" fica acessível pela marca central (link para #inicio).
   const desktopNav = navItems.filter((item) => item.id !== 'inicio')
-  const leftNav = desktopNav.slice(0, 4)
-  const rightNav = desktopNav.slice(4)
+  const leftNav = desktopNav.slice(0, 3)
+  const rightNav = desktopNav.slice(3)
 
   const renderNavLink = (item: (typeof navItems)[number]) => {
     const isActive = activeSection === item.id
@@ -123,7 +123,7 @@ export function Header() {
           {/* Zona central: marca */}
           <a
             href="#inicio"
-            aria-label="Museu Municipal Hilmar Harry Kluck — ir para o início"
+            aria-label="Museu Carajás — ir para o início"
             onClick={() => setMenuOpen(false)}
             className="shrink-0"
           >

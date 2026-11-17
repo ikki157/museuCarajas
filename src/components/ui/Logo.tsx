@@ -48,16 +48,19 @@ export function Logo({ tone = 'dark', className, compact = false, variant = 'def
     return (
       <span
         className={cn(
-          'inline-flex flex-col items-start text-left xl:items-center xl:text-center',
+          'inline-flex items-center gap-3 text-left',
           tone === 'light' ? 'text-parchment' : 'text-ink',
           className,
         )}
       >
-        <span className="display text-[21px] font-medium leading-none tracking-[-0.02em] sm:text-[25px]">
-          Museu Carajás<span className="text-[#c83e37]">.</span>
-        </span>
-        <span className="mt-1.5 text-[10px] font-medium uppercase tracking-[0.24em] opacity-80">
-          Acervo Digital · Memória Regional
+        <LogoMark className="h-8 w-8 sm:h-9 sm:w-9" />
+        <span className="flex flex-col items-start">
+          <span className="display text-[20px] font-medium leading-none tracking-[-0.02em] sm:text-[24px]">
+            Museu Carajás<span className="text-[#c83e37]">.</span>
+          </span>
+          <span className="mt-1 text-[10px] font-medium uppercase tracking-[0.22em] opacity-80">
+            Acervo Digital · Memória Regional
+          </span>
         </span>
       </span>
     )

@@ -47,35 +47,26 @@ export function Hero() {
       mm.add('(prefers-reduced-motion: no-preference)', () => {
         // Entrada orquestrada
         const tl = gsap.timeline({ defaults: { ease: 'power4.out' } })
-        tl.from('.hero-bg', { scale: 1.35, duration: 2.4, ease: 'power3.out' }, 0)
-          .from('.hero-veil', { opacity: 0, duration: 1.2 }, 0)
+        tl.from('.hero-bg', { scale: 1.18, duration: 1.8, ease: 'power3.out' }, 0)
+          .from('.hero-veil', { opacity: 0, duration: 1.1 }, 0)
           .from('.hero-eyebrow > *', { opacity: 0, y: 14, stagger: 0.08, duration: 0.8 }, 0.35)
           .from('.hero-word', { yPercent: 115, rotate: 4, stagger: 0.07, duration: 1.2 }, 0.45)
           .from('.hero-sub', { opacity: 0, y: 24, duration: 1 }, 1.0)
           .from('.hero-cta', { opacity: 0, y: 24, stagger: 0.1, duration: 0.9 }, 1.15)
           .from('.hero-meta', { opacity: 0, y: 20, stagger: 0.08, duration: 0.8 }, 1.35)
 
-        // Parallax em camadas no scroll: imagem reduz sutilmente de 1.08 para 1.0 e desliza mais lento que o título
+        // Parallax em camadas no scroll: fundo reduz de 1.06 -> 1.0 enquanto conteúdo desliza mais rápido
         const st = { trigger: root.current, start: 'top top', end: 'bottom top', scrub: true }
         gsap.fromTo(
           '.hero-bg-wrap',
-          { scale: 1.08, yPercent: 0 },
-          { scale: 1.0, yPercent: 18, ease: 'none', scrollTrigger: st },
+          { scale: 1.06, yPercent: 0 },
+          { scale: 1.0, yPercent: 12, ease: 'none', scrollTrigger: st },
         )
-        gsap.to('.hero-content', { yPercent: -12, opacity: 0.2, ease: 'none', scrollTrigger: st })
-
-        // Cursor: profundidade sutil acompanhando o ponteiro
-        const bgX = gsap.quickTo('.hero-bg', 'x', { duration: 1.2, ease: 'power3' })
-        const bgY = gsap.quickTo('.hero-bg', 'y', { duration: 1.2, ease: 'power3' })
-        const onMove = (e: PointerEvent) => {
-          const nx = e.clientX / window.innerWidth - 0.5
-          const ny = e.clientY / window.innerHeight - 0.5
-          bgX(nx * -28)
-          bgY(ny * -20)
-        }
-        const el = root.current
-        el?.addEventListener('pointermove', onMove)
-        return () => el?.removeEventListener('pointermove', onMove)
+        gsap.fromTo(
+          '.hero-content',
+          { yPercent: 0, opacity: 1 },
+          { yPercent: -18, opacity: 0.15, ease: 'none', scrollTrigger: st },
+        )
       })
     }, root)
 

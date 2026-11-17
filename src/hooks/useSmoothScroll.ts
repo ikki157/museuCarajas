@@ -103,9 +103,9 @@ export function useSmoothScroll(): void {
       document.documentElement.style.scrollBehavior = 'auto'
 
       const instance = new Lenis({
-        lerp: 0.09,
+        duration: 1.25,
+        easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
         smoothWheel: true,
-        wheelMultiplier: 0.95,
       })
       lenis = instance
 

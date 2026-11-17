@@ -9,6 +9,7 @@ import { Gallery } from './components/home/Gallery'
 import { Hero } from './components/home/Hero'
 import { Visit } from './components/home/Visit'
 import { ParallaxBand } from './components/ui/ParallaxBand'
+import { Preloader } from './components/ui/Preloader'
 import { useSmoothScroll } from './hooks/useSmoothScroll'
 
 export default function App() {
@@ -16,6 +17,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-parchment">
+      <Preloader />
       <Header />
       <main id="conteudo">
         <Hero />

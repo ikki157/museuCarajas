@@ -14,30 +14,14 @@ export function Exhibitions() {
       const mm = gsap.matchMedia()
 
       mm.add('(prefers-reduced-motion: reduce)', () => {
-        gsap.set(['.exhibitions-photo-reveal', '.exhibitions-card-item'], {
+        gsap.set('.exhibitions-card-item', {
           clearProps: 'all',
           opacity: 1,
           y: 0,
-          clipPath: 'none',
         })
       })
 
       mm.add('(prefers-reduced-motion: no-preference)', () => {
-        gsap.fromTo(
-          '.exhibitions-photo-reveal',
-          { clipPath: 'inset(12% 8% 12% 8% round 36px)' },
-          {
-            clipPath: 'inset(0% 0% 0% 0% round 36px)',
-            ease: 'none',
-            scrollTrigger: {
-              trigger: '.exhibitions-photo-reveal',
-              start: 'top 90%',
-              end: 'top 35%',
-              scrub: 0.6,
-            },
-          },
-        )
-
         gsap.fromTo(
           '.exhibitions-card-item',
           { opacity: 0, y: 22 },
@@ -89,8 +73,8 @@ export function Exhibitions() {
         </div>
 
         <div className="mt-14 grid gap-6 lg:mt-20 lg:grid-cols-12 lg:gap-8">
-          <div className="lg:col-span-7">
-            <figure className="exhibitions-photo-reveal img-zoom relative h-full overflow-hidden rounded-[36px] bg-sand-deep will-change-[clip-path]">
+          <Reveal variant="image-mask" className="lg:col-span-7">
+            <figure className="img-zoom relative h-full overflow-hidden rounded-[36px] bg-sand-deep">
               <img
                 src="/images/museu/museu-05.jpg"
                 alt="Painel de abertura da exposição Parauapebas: Conhecer para Preservar, no interior do museu."
@@ -113,46 +97,48 @@ export function Exhibitions() {
                 </p>
               </figcaption>
             </figure>
-          </div>
+          </Reveal>
 
-          <div className="exhibitions-editorial-card flex flex-col justify-between rounded-[36px] bg-cream p-8 sm:p-12 lg:col-span-5">
-            <div>
-              <p className="exhibitions-card-item eyebrow text-clay">A mostra</p>
-              <h3 className="exhibitions-card-item display mt-4 text-[clamp(1.7rem,3vw,2.4rem)] font-medium leading-[1.08] text-forest">
-                Parauapebas: Conhecer para Preservar
-              </h3>
-              <p className="exhibitions-card-item display mt-4 text-[clamp(1.15rem,1.8vw,1.4rem)] font-medium leading-snug text-forest/80">
-                Uma narrativa sobre a memória coletiva da região.
-              </p>
-              <div className="exhibitions-card-item mt-5 space-y-4 text-[14.5px] leading-relaxed text-stone">
-                <p>
-                  A exposição apresenta um breve histórico do município e parte dos encontros em
-                  torno do patrimônio cultural de Parauapebas. Textos e objetos tradicionais
-                  conduzem o visitante por uma narrativa visual sobre a memória local.
+          <Reveal variant="parallax-card" className="flex lg:col-span-5">
+            <div className="exhibitions-editorial-card flex w-full flex-col justify-between rounded-[36px] bg-cream p-8 sm:p-12">
+              <div>
+                <p className="exhibitions-card-item eyebrow text-clay">A mostra</p>
+                <h3 className="exhibitions-card-item display mt-4 text-[clamp(1.7rem,3vw,2.4rem)] font-medium leading-[1.08] text-forest">
+                  Parauapebas: Conhecer para Preservar
+                </h3>
+                <p className="exhibitions-card-item display mt-4 text-[clamp(1.15rem,1.8vw,1.4rem)] font-medium leading-snug text-forest/80">
+                  Uma narrativa sobre a memória coletiva da região.
                 </p>
-                <p>
-                  O percurso convida a conhecer a cultura indígena Xikrin do Cateté, os vestígios
-                  arqueológicos de Carajás e os processos que marcaram a formação da cidade.
-                </p>
+                <div className="exhibitions-card-item mt-5 space-y-4 text-[14.5px] leading-relaxed text-stone">
+                  <p>
+                    A exposição apresenta um breve histórico do município e parte dos encontros em
+                    torno do patrimônio cultural de Parauapebas. Textos e objetos tradicionais
+                    conduzem o visitante por uma narrativa visual sobre a memória local.
+                  </p>
+                  <p>
+                    O percurso convida a conhecer a cultura indígena Xikrin do Cateté, os vestígios
+                    arqueológicos de Carajás e os processos que marcaram a formação da cidade.
+                  </p>
+                </div>
+              </div>
+
+              <div className="exhibitions-card-item">
+                <ButtonLink href="#visite" variant="primary" className="mt-8 lg:mt-10">
+                  Planeje sua visita
+                  <ArrowRight
+                    size={14}
+                    strokeWidth={1.8}
+                    className="transition group-hover:translate-x-0.5"
+                    aria-hidden="true"
+                  />
+                </ButtonLink>
               </div>
             </div>
-
-            <div className="exhibitions-card-item">
-              <ButtonLink href="#visite" variant="primary" className="mt-8 lg:mt-10">
-                Planeje sua visita
-                <ArrowRight
-                  size={14}
-                  strokeWidth={1.8}
-                  className="transition group-hover:translate-x-0.5"
-                  aria-hidden="true"
-                />
-              </ButtonLink>
-            </div>
-          </div>
+          </Reveal>
         </div>
 
         <div className="mt-8 grid gap-6 lg:mt-8 lg:grid-cols-2 lg:gap-8">
-          <Reveal>
+          <Reveal variant="parallax-card">
             <article className="h-full rounded-[36px] bg-cream p-8 sm:p-12">
               <div className="flex items-start gap-6">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full border border-forest/50 text-forest">
@@ -201,7 +187,7 @@ export function Exhibitions() {
             </article>
           </Reveal>
 
-          <Reveal delay={120}>
+          <Reveal variant="parallax-card">
             <article className="h-full rounded-[36px] bg-cream p-8 sm:p-12 lg:mt-16">
               <div className="flex items-start gap-6">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full border border-forest/50 text-forest">

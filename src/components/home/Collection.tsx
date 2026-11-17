@@ -36,40 +36,31 @@ export function Collection() {
       const mm = gsap.matchMedia()
 
       mm.add('(prefers-reduced-motion: reduce)', () => {
-        const media = panel.querySelector('.collection-media')
-        const captions = panel.querySelectorAll('.collection-caption-item')
-        if (media) gsap.set(media, { clearProps: 'all', opacity: 1, scale: 1, clipPath: 'none' })
-        if (captions.length) gsap.set(captions, { clearProps: 'all', opacity: 1, y: 0 })
+        const targets = [
+          panel.querySelector('.collection-media'),
+          panel.querySelector('.collection-caption'),
+        ].filter(Boolean)
+        if (targets.length) {
+          gsap.set(targets, { clearProps: 'all', opacity: 1, scale: 1, y: 0 })
+        }
       })
 
       mm.add('(prefers-reduced-motion: no-preference)', () => {
         const media = panel.querySelector('.collection-media')
-        const captions = panel.querySelectorAll('.collection-caption-item')
+        const caption = panel.querySelector('.collection-caption')
+        const targets = [media, caption].filter(Boolean)
 
-        if (media) {
+        if (targets.length) {
           gsap.fromTo(
-            media,
-            { opacity: 0, scale: 1.04, clipPath: 'inset(6% 4% 6% 4% round 36px)' },
+            targets,
+            { opacity: 0, scale: 1.04, y: 12 },
             {
               opacity: 1,
-              scale: 1,
-              clipPath: 'inset(0% 0% 0% 0% round 36px)',
-              duration: 0.65,
-              ease: 'power3.out',
-            },
-          )
-        }
-
-        if (captions.length) {
-          gsap.fromTo(
-            captions,
-            { opacity: 0, y: 14 },
-            {
-              opacity: 1,
+              scale: 1.0,
               y: 0,
               duration: 0.55,
-              stagger: 0.06,
-              ease: 'power3.out',
+              stagger: 0.05,
+              ease: 'power2.out',
             },
           )
         }
@@ -236,7 +227,7 @@ export function Collection() {
                     hidden={!isActive}
                   >
                     <figure>
-                      <div className="collection-media img-zoom relative overflow-hidden rounded-[36px] bg-forest-soft will-change-[transform,opacity,clip-path]">
+                      <div className="collection-media img-zoom relative overflow-hidden rounded-[36px] bg-forest-soft will-change-[transform,opacity]">
                         <img
                           src={category.image}
                           alt={category.alt}
@@ -256,21 +247,19 @@ export function Collection() {
                         </p>
                       </div>
 
-                      <figcaption className="mt-7 px-2">
+                      <figcaption className="collection-caption mt-7 px-2">
                         <div className="flex items-start justify-between gap-6">
                           <div>
-                            <p className="collection-caption-item eyebrow text-copper-light">
-                              Coleção
-                            </p>
-                            <h3 className="collection-caption-item display mt-3 text-[clamp(1.6rem,3.2vw,2.35rem)] font-medium leading-[1.08] text-parchment">
+                            <p className="eyebrow text-copper-light">Coleção</p>
+                            <h3 className="display mt-3 text-[clamp(1.6rem,3.2vw,2.35rem)] font-medium leading-[1.08] text-parchment">
                               {category.title}
                             </h3>
-                            <p className="collection-caption-item mt-4 max-w-xl text-[14px] leading-relaxed text-parchment/75">
+                            <p className="mt-4 max-w-xl text-[14px] leading-relaxed text-parchment/75">
                               {category.description}
                             </p>
                           </div>
                         </div>
-                        <p className="collection-caption-item mt-5 text-xs leading-relaxed text-parchment/75">
+                        <p className="mt-5 text-xs leading-relaxed text-parchment/75">
                           Fotografia do acervo expositivo · {photoCredit} (2023)
                         </p>
                       </figcaption>

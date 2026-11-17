@@ -19,46 +19,18 @@ export function AboutMuseum() {
       const mm = gsap.matchMedia()
 
       mm.add('(prefers-reduced-motion: reduce)', () => {
-        gsap.set(
-          ['.about-photo-reveal', '.about-inset-card', '.about-quote-bg', '.about-quote-line'],
-          { clearProps: 'all', opacity: 1, y: 0, clipPath: 'none' },
-        )
+        gsap.set(['.about-quote-bg', '.about-quote-line'], {
+          clearProps: 'all',
+          opacity: 1,
+          y: 0,
+          scale: 1,
+        })
       })
 
       mm.add('(prefers-reduced-motion: no-preference)', () => {
         gsap.fromTo(
-          '.about-photo-reveal',
-          { clipPath: 'inset(12% 8% 12% 8% round 36px)' },
-          {
-            clipPath: 'inset(0% 0% 0% 0% round 36px)',
-            ease: 'none',
-            scrollTrigger: {
-              trigger: '.about-photo-reveal',
-              start: 'top 90%',
-              end: 'top 35%',
-              scrub: 0.6,
-            },
-          },
-        )
-
-        gsap.fromTo(
-          '.about-inset-card',
-          { y: 28 },
-          {
-            y: -18,
-            ease: 'none',
-            scrollTrigger: {
-              trigger: '.about-photo-reveal',
-              start: 'top bottom',
-              end: 'bottom top',
-              scrub: true,
-            },
-          },
-        )
-
-        gsap.fromTo(
           '.about-quote-bg',
-          { scale: 1.12, opacity: 0.08 },
+          { scale: 1.08, opacity: 0.14 },
           {
             scale: 1.0,
             opacity: 0.22,
@@ -74,17 +46,17 @@ export function AboutMuseum() {
 
         gsap.fromTo(
           '.about-quote-line',
-          { opacity: 0.25, y: 20 },
+          { y: 32, opacity: 0.3 },
           {
+            y: -16,
             opacity: 1,
-            y: 0,
-            stagger: 0.12,
+            stagger: 0.1,
             ease: 'none',
             scrollTrigger: {
               trigger: '.about-quote-band',
-              start: 'top 80%',
-              end: 'center 52%',
-              scrub: 0.5,
+              start: 'top 85%',
+              end: 'bottom 25%',
+              scrub: 0.6,
             },
           },
         )
@@ -162,32 +134,39 @@ export function AboutMuseum() {
 
           <div className="py-12 lg:col-span-7 lg:pb-28 lg:pt-14">
             <div className="relative">
-              <figure className="about-photo-reveal overflow-hidden rounded-[36px] bg-sand-deep shadow-sm will-change-[clip-path]">
-                <img
-                  src="/images/museu/museu-02.jpg"
-                  alt="Placa do Museu de Parauapebas Hilmar Harry Kluck na fachada da sede administrativa, com pintura de folhas ao fundo."
-                  width={1280}
-                  height={720}
-                  loading="lazy"
-                  decoding="async"
-                  className="aspect-[4/5] w-full object-cover object-center sm:aspect-[5/6]"
-                />
-              </figure>
+              <Reveal variant="image-mask">
+                <figure className="overflow-hidden rounded-[36px] bg-sand-deep shadow-sm">
+                  <img
+                    src="/images/museu/museu-02.jpg"
+                    alt="Placa do Museu de Parauapebas Hilmar Harry Kluck na fachada da sede administrativa, com pintura de folhas ao fundo."
+                    width={1280}
+                    height={720}
+                    loading="lazy"
+                    decoding="async"
+                    className="aspect-[4/5] w-full object-cover object-center sm:aspect-[5/6]"
+                  />
+                </figure>
+              </Reveal>
 
-              <figure className="about-inset-card relative -mt-16 ml-auto w-[62%] overflow-hidden rounded-2xl bg-cream shadow-sm will-change-transform sm:-mt-24 sm:w-[52%] lg:-mb-8 lg:-ml-6 lg:mr-auto lg:w-[48%]">
-                <img
-                  src="/images/museu/museu-03.jpg"
-                  alt="Fotografia histórica de moradores de Parauapebas em uma caminhonete durante o plebiscito, com cartaz em apoio ao município."
-                  width={1280}
-                  height={720}
-                  loading="lazy"
-                  decoding="async"
-                  className="aspect-[4/3] w-full object-cover"
-                />
-                <figcaption className="px-4 py-3 text-xs leading-snug text-stone">
-                  Memória da formação de Parauapebas. {photoCredit} (2023).
-                </figcaption>
-              </figure>
+              <Reveal
+                variant="parallax-card"
+                className="relative -mt-16 ml-auto w-[62%] sm:-mt-24 sm:w-[52%] lg:-mb-8 lg:-ml-6 lg:mr-auto lg:w-[48%]"
+              >
+                <figure className="overflow-hidden rounded-2xl bg-cream shadow-sm">
+                  <img
+                    src="/images/museu/museu-03.jpg"
+                    alt="Fotografia histórica de moradores de Parauapebas em uma caminhonete durante o plebiscito, com cartaz em apoio ao município."
+                    width={1280}
+                    height={720}
+                    loading="lazy"
+                    decoding="async"
+                    className="aspect-[4/3] w-full object-cover"
+                  />
+                  <figcaption className="px-4 py-3 text-xs leading-snug text-stone">
+                    Memória da formação de Parauapebas. {photoCredit} (2023).
+                  </figcaption>
+                </figure>
+              </Reveal>
             </div>
           </div>
         </div>
@@ -247,7 +226,7 @@ export function AboutMuseum() {
       {/* 3. Homenagem: cartão sage que emerge da faixa escura */}
       <div id="hilmar" className="scroll-mt-28 pb-24 lg:pb-32">
         <div className="site-container">
-          <Reveal>
+          <Reveal variant="parallax-card">
             <div className="relative -mt-16 rounded-[40px] bg-parchment p-8 text-ink sm:p-14 lg:-mt-20">
               <div className="grid gap-10 lg:grid-cols-12 lg:gap-14">
                 <div className="lg:col-span-4">

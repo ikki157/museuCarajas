@@ -15,30 +15,14 @@ export function Education() {
       const mm = gsap.matchMedia()
 
       mm.add('(prefers-reduced-motion: reduce)', () => {
-        gsap.set(['.education-photo-reveal', '.education-audience-card'], {
+        gsap.set('.education-audience-card', {
           clearProps: 'all',
           opacity: 1,
           y: 0,
-          clipPath: 'none',
         })
       })
 
       mm.add('(prefers-reduced-motion: no-preference)', () => {
-        gsap.fromTo(
-          '.education-photo-reveal',
-          { clipPath: 'inset(12% 8% 12% 8% round 36px)' },
-          {
-            clipPath: 'inset(0% 0% 0% 0% round 36px)',
-            ease: 'none',
-            scrollTrigger: {
-              trigger: '.education-photo-reveal',
-              start: 'top 90%',
-              end: 'top 35%',
-              scrub: 0.6,
-            },
-          },
-        )
-
         gsap.fromTo(
           '.education-audience-card',
           { opacity: 0, y: 22 },
@@ -111,21 +95,23 @@ export function Education() {
               </blockquote>
             </Reveal>
 
-            <div className="education-audience-list mt-10 grid gap-4">
-              {educationAudiences.map((audience) => (
-                <div
-                  key={audience.title}
-                  className="education-audience-card rounded-[28px] bg-forest-soft/55 p-6"
-                >
-                  <h3 className="display text-[19px] font-medium leading-tight text-parchment">
-                    {audience.title}
-                  </h3>
-                  <p className="mt-2 max-w-xl text-[13.5px] leading-relaxed text-parchment/80">
-                    {audience.description}
-                  </p>
-                </div>
-              ))}
-            </div>
+            <Reveal variant="parallax-card" className="mt-10">
+              <div className="education-audience-list grid gap-4">
+                {educationAudiences.map((audience) => (
+                  <div
+                    key={audience.title}
+                    className="education-audience-card rounded-[28px] bg-forest-soft/55 p-6"
+                  >
+                    <h3 className="display text-[19px] font-medium leading-tight text-parchment">
+                      {audience.title}
+                    </h3>
+                    <p className="mt-2 max-w-xl text-[13.5px] leading-relaxed text-parchment/80">
+                      {audience.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </Reveal>
 
             <Reveal delay={260}>
               <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -158,17 +144,19 @@ export function Education() {
 
           <div className="lg:col-span-5">
             <figure className="relative pb-6">
-              <div className="education-photo-reveal img-zoom overflow-hidden rounded-[36px] bg-forest-soft will-change-[clip-path]">
-                <img
-                  src="/images/museu/museu-04.jpg"
-                  alt="Instrumentos musicais e adornos com plumária em exposição no museu."
-                  width={1280}
-                  height={720}
-                  loading="lazy"
-                  decoding="async"
-                  className="aspect-[4/5] w-full object-cover"
-                />
-              </div>
+              <Reveal variant="image-mask">
+                <div className="img-zoom overflow-hidden rounded-[36px] bg-forest-soft">
+                  <img
+                    src="/images/museu/museu-04.jpg"
+                    alt="Instrumentos musicais e adornos com plumária em exposição no museu."
+                    width={1280}
+                    height={720}
+                    loading="lazy"
+                    decoding="async"
+                    className="aspect-[4/5] w-full object-cover"
+                  />
+                </div>
+              </Reveal>
               <figcaption className="absolute -bottom-5 left-4 right-4 rounded-3xl bg-forest-deep/95 p-5 text-parchment/85 shadow-2xl backdrop-blur-sm sm:left-6 sm:right-6">
                 <p className="eyebrow text-copper-light">Acervo em diálogo</p>
                 <p className="mt-2 text-[12.5px] leading-relaxed">

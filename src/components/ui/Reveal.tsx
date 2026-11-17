@@ -6,10 +6,10 @@ type RevealProps = {
   children: ReactNode
   className?: string
   delay?: number
-  variant?: 'fade-up' | 'clip-card'
+  variant?: 'text' | 'image-mask' | 'parallax-card'
 }
 
-export function Reveal({ children, className, delay = 0, variant = 'fade-up' }: RevealProps) {
+export function Reveal({ children, className, delay = 0, variant = 'text' }: RevealProps) {
   const ref = useRef<HTMLDivElement>(null)
 
   useLayoutEffect(() => {
@@ -20,14 +20,18 @@ export function Reveal({ children, className, delay = 0, variant = 'fade-up' }: 
       const mm = gsap.matchMedia()
 
       mm.add('(prefers-reduced-motion: reduce)', () => {
-        gsap.set(node, { clearProps: 'all', opacity: 1, y: 0, clipPath: 'none' })
+        const innerImg = node.querySelector('img')
+        gsap.set(node, { clearProps: 'all', opacity: 1, y: 0, scale: 1, clipPath: 'none' })
+        if (innerImg) {
+          gsap.set(innerImg, { clearProps: 'all', scale: 1 })
+        }
       })
 
       mm.add('(prefers-reduced-motion: no-preference)', () => {
-        if (variant === 'clip-card') {
+        if (variant === 'image-mask') {
           gsap.fromTo(
             node,
-            { clipPath: 'inset(12% 8% 12% 8% round 36px)' },
+            { clipPath: 'inset(10% 6% 10% 6% round 36px)' },
             {
               clipPath: 'inset(0% 0% 0% 0% round 36px)',
               ease: 'none',
@@ -39,16 +43,52 @@ export function Reveal({ children, className, delay = 0, variant = 'fade-up' }: 
               },
             },
           )
+
+          const innerImg = node.querySelector('img')
+          if (innerImg) {
+            gsap.fromTo(
+              innerImg,
+              { scale: 1.08 },
+              {
+                scale: 1.0,
+                ease: 'none',
+                scrollTrigger: {
+                  trigger: node,
+                  start: 'top 90%',
+                  end: 'bottom 20%',
+                  scrub: 0.6,
+                },
+              },
+            )
+          }
+          return
+        }
+
+        if (variant === 'parallax-card') {
+          gsap.fromTo(
+            node,
+            { y: 40 },
+            {
+              y: -20,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: node,
+                start: 'top bottom',
+                end: 'bottom top',
+                scrub: 0.6,
+              },
+            },
+          )
           return
         }
 
         gsap.fromTo(
           node,
-          { opacity: 0, y: 26 },
+          { y: 28, opacity: 0 },
           {
-            opacity: 1,
             y: 0,
-            duration: 0.9,
+            opacity: 1,
+            duration: 0.85,
             delay: delay / 1000,
             ease: 'power3.out',
             scrollTrigger: {

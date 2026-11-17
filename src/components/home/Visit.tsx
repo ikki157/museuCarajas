@@ -163,8 +163,8 @@ export function Visit() {
           </div>
 
           <div className="lg:col-span-6">
-            <Reveal delay={120}>
-              <figure>
+            <figure>
+              <Reveal variant="image-mask">
                 <div className="img-zoom relative overflow-hidden rounded-[36px] bg-sand-deep">
                   <img
                     src="/images/museu/museu-02.jpg"
@@ -200,12 +200,12 @@ export function Visit() {
                     </a>
                   </figcaption>
                 </div>
-                <p className="mt-3 text-xs leading-relaxed text-stone">
-                  Fotografia: {photoCredit} (2023). Confirme horários e disponibilidade antes da
-                  visita.
-                </p>
-              </figure>
-            </Reveal>
+              </Reveal>
+              <p className="mt-3 text-xs leading-relaxed text-stone">
+                Fotografia: {photoCredit} (2023). Confirme horários e disponibilidade antes da
+                visita.
+              </p>
+            </figure>
           </div>
         </div>
       </div>

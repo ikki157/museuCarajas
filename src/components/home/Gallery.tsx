@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { AlertCircle, ArrowUpRight, ImageOff, Maximize2, RefreshCw } from 'lucide-react'
 import { useGaleria, type GaleriaStatus } from '../../hooks/useGaleria'
 import { getGaleriaImageUrl, type GaleriaItem } from '../../lib/galeria'
+import { gsap, ScrollTrigger } from '../../lib/gsap'
 import { isSupabaseConfigured, supabaseConfigIssue } from '../../lib/supabase'
 import { cn, formatDate } from '../../lib/utils'
 import { Reveal } from '../ui/Reveal'
@@ -21,7 +22,7 @@ function GalleryCard({ item, onOpen }: { item: GaleriaItem; onOpen: () => void }
   const imageUrl = getGaleriaImageUrl(item)
 
   return (
-    <figure className="group mb-5 break-inside-avoid">
+    <figure className="gallery-card-item group mb-5 break-inside-avoid">
       <button
         type="button"
         onClick={onOpen}
@@ -37,7 +38,7 @@ function GalleryCard({ item, onOpen }: { item: GaleriaItem; onOpen: () => void }
             height={720}
             loading="lazy"
             decoding="async"
-            className="h-full w-full object-cover transition duration-700 ease-museum group-hover:scale-[1.025]"
+            className="h-full w-full object-cover transition duration-700 ease-museum group-hover:scale-[1.03]"
           />
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-sand text-stone">
@@ -158,9 +159,46 @@ export function Gallery() {
     if (lightboxId && lightboxIndex === -1) setLightboxId(null)
   }, [items.length, lightboxId, lightboxIndex, loading])
 
+  const gridRef = useRef<HTMLDivElement>(null)
   const statusInfo = statusCopy[status]
   const hasItems = items.length > 0
   const showFilters = isSupabaseConfigured || hasItems
+
+  useLayoutEffect(() => {
+    const grid = gridRef.current
+    if (!grid || loading || filteredItems.length === 0) return
+
+    const ctx = gsap.context(() => {
+      const mm = gsap.matchMedia()
+
+      mm.add('(prefers-reduced-motion: reduce)', () => {
+        gsap.set('.gallery-card-item', { clearProps: 'all', opacity: 1, y: 0 })
+      })
+
+      mm.add('(prefers-reduced-motion: no-preference)', () => {
+        const cards = gsap.utils.toArray<HTMLElement>('.gallery-card-item')
+        if (!cards.length) return
+
+        gsap.set(cards, { opacity: 0, y: 32 })
+        ScrollTrigger.batch(cards, {
+          start: 'top 90%',
+          once: true,
+          onEnter: (batch) => {
+            gsap.to(batch, {
+              opacity: 1,
+              y: 0,
+              duration: 0.75,
+              stagger: 0.08,
+              ease: 'power3.out',
+              overwrite: true,
+            })
+          },
+        })
+      })
+    }, gridRef)
+
+    return () => ctx.revert()
+  }, [filteredItems, loading])
 
   return (
     <section
@@ -347,7 +385,7 @@ export function Gallery() {
               </p>
             </div>
           ) : (
-            <div className="gallery-columns columns-1 gap-5 sm:columns-2 lg:columns-3">
+            <div ref={gridRef} className="gallery-columns columns-1 gap-5 sm:columns-2 lg:columns-3">
               {filteredItems.map((item) => (
                 <GalleryCard
                   key={item.id}

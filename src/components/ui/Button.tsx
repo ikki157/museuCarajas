@@ -4,10 +4,10 @@ import { cn } from '../../lib/utils'
 export type ButtonVariant = 'primary' | 'light' | 'outline-light'
 
 const baseStyles =
-  'group inline-flex items-center justify-center gap-2.5 rounded-sm px-6 py-3.5 text-[11.5px] font-semibold uppercase tracking-[0.16em] transition duration-300 ease-museum disabled:pointer-events-none disabled:opacity-55'
+  'group inline-flex items-center justify-center gap-2.5 rounded-full px-7 py-3.5 text-[12px] font-medium tracking-[0.06em] transition duration-300 ease-museum disabled:pointer-events-none disabled:opacity-55'
 
 const variants: Record<ButtonVariant, string> = {
-  primary: 'bg-clay text-cream hover:bg-clay-dark',
+  primary: 'bg-forest text-cream hover:bg-forest-deep',
   light: 'bg-parchment text-forest-deep hover:bg-cream',
   'outline-light':
     'border border-parchment/35 text-parchment hover:border-parchment hover:bg-parchment/10',

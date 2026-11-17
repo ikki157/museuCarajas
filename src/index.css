@@ -4,21 +4,21 @@
   --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-serif: 'Fraunces Variable', Georgia, 'Times New Roman', serif;
 
-  --color-parchment: #f7f1e7;
-  --color-cream: #fbf7ef;
-  --color-sand: #ede2d0;
-  --color-sand-deep: #ddccb2;
-  --color-ink: #17231c;
-  --color-forest: #1b3327;
-  --color-forest-deep: #102119;
-  --color-forest-soft: #274534;
-  --color-moss: #5d7052;
-  --color-clay: #a34d2b;
-  --color-clay-dark: #833c21;
-  --color-copper: #b87333;
-  --color-copper-light: #d9a06a;
-  --color-stone: #635b4f;
-  --color-line: #d8cbb8;
+  --color-parchment: #cfd6c8;
+  --color-cream: #dce2d6;
+  --color-sand: #c3cbbd;
+  --color-sand-deep: #b2bcab;
+  --color-ink: #1b2a23;
+  --color-forest: #21322a;
+  --color-forest-deep: #15221c;
+  --color-forest-soft: #2c4036;
+  --color-moss: #4f6658;
+  --color-clay: #21322a;
+  --color-clay-dark: #15221c;
+  --color-copper: #8fa392;
+  --color-copper-light: #dce2d6;
+  --color-stone: #46564d;
+  --color-line: #b5bfb0;
 
   --ease-museum: cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -52,8 +52,14 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-copper);
+    outline: 2px solid var(--color-forest);
     outline-offset: 3px;
+  }
+
+  .bg-forest :focus-visible,
+  .bg-forest-deep :focus-visible,
+  .bg-forest-soft :focus-visible {
+    outline-color: var(--color-copper-light);
   }
 
   img {
@@ -99,7 +105,7 @@
   }
 
   .input-base {
-    @apply w-full rounded-sm border border-line bg-cream px-4 py-3 text-[15px] text-ink placeholder:text-stone/80 transition duration-200 focus:border-copper focus:outline-none focus:ring-2 focus:ring-copper/20;
+    @apply w-full rounded-2xl border border-stone/55 bg-cream px-5 py-3 text-[15px] text-ink placeholder:text-stone transition duration-200 focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/25;
   }
 
   .input-error {
@@ -123,14 +129,27 @@
     transform: scale(1.035);
   }
 
+  /* Textura removida no visual Sylvan (mantida como no-op para compatibilidade). */
   .texture-lines {
-    background-image: repeating-linear-gradient(
-      115deg,
-      transparent 0,
-      transparent 34px,
-      rgb(247 241 231 / 0.035) 34px,
-      rgb(247 241 231 / 0.035) 35px
-    );
+    background-image: none;
+  }
+
+  .card-organic {
+    @apply rounded-[32px] sm:rounded-[44px];
+  }
+
+  .img-organic {
+    @apply overflow-hidden rounded-[28px] sm:rounded-[40px];
+  }
+
+  .hero-chevron-mask {
+    clip-path: polygon(0 0, 100% 0, 100% 96%, 40% 100%, 0 95%);
+  }
+
+  @media (min-width: 768px) {
+    .hero-chevron-mask {
+      clip-path: polygon(0 0, 100% 0, 100% 90%, 26% 100%, 0 88%);
+    }
   }
 
   .gallery-columns > * {

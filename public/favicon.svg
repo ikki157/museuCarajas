@@ -1,6 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="14" fill="#12241B"/>
-  <circle cx="32" cy="32" r="25" fill="none" stroke="#F7F1E7" stroke-width="1.4" opacity=".7"/>
-  <path d="M32 15c-9.4 0-17 7-17 15.9 0 8.9 6.9 15.4 15.7 15.4 7.3 0 12.8-4.8 12.8-11 0-5.6-4.5-9.7-9.9-9.7-4.6 0-8.1 3-8.1 6.8 0 3.1 2.5 5.5 5.5 5.5 2.3 0 4-1.4 4-3.4 0-1.6-1.1-2.7-2.6-2.7" fill="none" stroke="#F7F1E7" stroke-width="2.2" stroke-linecap="round"/>
-  <circle cx="49" cy="18" r="3" fill="#B87333"/>
+  <rect width="64" height="64" rx="14" fill="#15221c" />
+  <circle cx="32" cy="32" r="25" fill="none" stroke="#dce2d6" stroke-width="1" stroke-opacity="0.28" />
+  <g transform="translate(32 32)">
+    <circle r="13.5" fill="#c83e37" />
+    <path d="M0 -22 C6.5 -17.5, 9 -10, 5.2 -3 L0 0 L-5.2 -3 C-9 -10, -6.5 -17.5, 0 -22 Z" fill="#c83e37" />
+    <path d="M0 -22 C6.5 -17.5, 9 -10, 5.2 -3 L0 0 L-5.2 -3 C-9 -10, -6.5 -17.5, 0 -22 Z" fill="#c83e37" transform="rotate(72)" />
+    <path d="M0 -22 C6.5 -17.5, 9 -10, 5.2 -3 L0 0 L-5.2 -3 C-9 -10, -6.5 -17.5, 0 -22 Z" fill="#c83e37" transform="rotate(144)" />
+    <path d="M0 -22 C6.5 -17.5, 9 -10, 5.2 -3 L0 0 L-5.2 -3 C-9 -10, -6.5 -17.5, 0 -22 Z" fill="#c83e37" transform="rotate(216)" />
+    <path d="M0 -22 C6.5 -17.5, 9 -10, 5.2 -3 L0 0 L-5.2 -3 C-9 -10, -6.5 -17.5, 0 -22 Z" fill="#c83e37" transform="rotate(288)" />
+    <path d="M0 -18.5 C2.3 -13, 2.5 -7.5, 0 -2.5 C-2.5 -7.5, -2.3 -13, 0 -18.5 Z" fill="#e3655b" />
+    <path d="M0 -18.5 C2.3 -13, 2.5 -7.5, 0 -2.5 C-2.5 -7.5, -2.3 -13, 0 -18.5 Z" fill="#e3655b" transform="rotate(72)" />
+    <path d="M0 -18.5 C2.3 -13, 2.5 -7.5, 0 -2.5 C-2.5 -7.5, -2.3 -13, 0 -18.5 Z" fill="#e3655b" transform="rotate(144)" />
+    <path d="M0 -18.5 C2.3 -13, 2.5 -7.5, 0 -2.5 C-2.5 -7.5, -2.3 -13, 0 -18.5 Z" fill="#e3655b" transform="rotate(216)" />
+    <path d="M0 -18.5 C2.3 -13, 2.5 -7.5, 0 -2.5 C-2.5 -7.5, -2.3 -13, 0 -18.5 Z" fill="#e3655b" transform="rotate(288)" />
+    <circle r="5.8" fill="#8f241f" />
+    <circle r="3.6" fill="#f7f1e7" />
+    <circle r="1.7" fill="#d9a06a" />
+  </g>
 </svg>

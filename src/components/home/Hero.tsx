@@ -105,30 +105,28 @@ export function Hero() {
       <div className="hero-content site-container relative flex flex-1 flex-col pb-28 pt-32 will-change-transform md:pb-32">
         <div className="mx-auto flex max-w-4xl flex-1 flex-col items-center justify-center text-center">
           <p className="hero-eyebrow eyebrow text-parchment/85">
-            <span>Museu Municipal Hilmar Harry Kluck · Parauapebas, PA</span>
+            <span>Acervo Digital · Região de Carajás</span>
           </p>
 
           <h1
             id="hero-title"
-            className="display mt-7 text-[clamp(3.2rem,8vw,6.8rem)] font-medium leading-[0.94] tracking-[-0.035em]"
+            className="display mt-6 text-[clamp(3.5rem,9vw,7.4rem)] font-medium leading-[0.94] tracking-[-0.035em]"
           >
-            <span className="block">
-              <Words text="Uma história que" />
-            </span>
-            <span className="block italic text-copper-light">
-              <Words text="atravessa gerações." />
+            <Words text="Museu" />{' '}
+            <span className="italic text-copper-light">
+              <Words text="Carajás." />
             </span>
           </h1>
 
-          <p className="hero-sub mx-auto mt-8 max-w-xl text-[16px] leading-relaxed text-parchment/90 sm:text-[17.5px]">
-            Descubra a memória, a arqueologia e a riqueza cultural de Parauapebas e da região de
-            Carajás.
+          <p className="hero-sub mx-auto mt-8 max-w-2xl text-[16px] leading-relaxed text-parchment/90 sm:text-[18px]">
+            Preservando registros históricos, fotografias, vídeos e documentos que contam a memória
+            viva de Parauapebas e da região de Carajás.
           </p>
 
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <div className="hero-cta">
-              <ButtonLink href="#acervo" variant="light">
-                Explore o acervo
+              <ButtonLink href="#galeria" variant="light">
+                Explorar registros
                 <ArrowDown
                   size={15}
                   strokeWidth={1.8}
@@ -138,8 +136,8 @@ export function Hero() {
               </ButtonLink>
             </div>
             <div className="hero-cta">
-              <ButtonLink href="#visite" variant="outline-light">
-                Planeje sua visita
+              <ButtonLink href="#contribua" variant="outline-light">
+                Enviar um registro
                 <ArrowUpRight
                   size={15}
                   strokeWidth={1.8}

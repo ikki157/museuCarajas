@@ -27,7 +27,7 @@ function GalleryCard({ item, onOpen }: { item: GaleriaItem; onOpen: () => void }
         onClick={onOpen}
         disabled={!imageUrl}
         aria-label={`Ampliar imagem: ${item.titulo}`}
-        className="relative block aspect-[16/10] w-full overflow-hidden bg-sand-deep text-left disabled:cursor-default"
+        className="relative block aspect-[16/10] w-full overflow-hidden rounded-[28px] bg-sand-deep text-left disabled:cursor-default"
       >
         {imageUrl ? (
           <img
@@ -42,11 +42,11 @@ function GalleryCard({ item, onOpen }: { item: GaleriaItem; onOpen: () => void }
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-sand text-stone">
             <ImageOff size={24} strokeWidth={1.4} aria-hidden="true" />
-            <span className="text-[11px] uppercase tracking-[0.16em]">Imagem indisponível</span>
+            <span className="text-xs uppercase tracking-[0.16em]">Imagem indisponível</span>
           </div>
         )}
 
-        <span className="absolute right-3 top-3 border border-parchment/25 bg-forest-deep/75 px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-parchment/90 backdrop-blur-sm">
+        <span className="absolute right-4 top-4 rounded-full bg-forest-deep/75 px-3 py-1.5 text-xs font-medium tracking-[0.06em] text-parchment backdrop-blur-sm">
           {item.formato}
         </span>
 
@@ -62,10 +62,10 @@ function GalleryCard({ item, onOpen }: { item: GaleriaItem; onOpen: () => void }
 
       <figcaption className="pt-3.5">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-clay">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-clay">
             {item.categoria}
           </p>
-          <p className="shrink-0 text-[11px] text-stone">{formatDate(item.criado_em)}</p>
+          <p className="shrink-0 text-xs text-stone">{formatDate(item.criado_em)}</p>
         </div>
         <h3 className="display mt-1.5 text-[19px] font-medium leading-tight text-forest">
           {item.titulo}
@@ -75,7 +75,7 @@ function GalleryCard({ item, onOpen }: { item: GaleriaItem; onOpen: () => void }
             {item.descricao}
           </p>
         ) : null}
-        <p className="mt-2 text-[11px] leading-relaxed text-stone">
+        <p className="mt-2 text-xs leading-relaxed text-stone">
           {item.credito ?? 'Acervo do Museu Municipal Hilmar Harry Kluck'}
         </p>
       </figcaption>
@@ -184,7 +184,7 @@ export function Gallery() {
               <div
                 role="status"
                 aria-live="polite"
-                className="inline-flex items-center gap-2.5 border border-line bg-cream px-3.5 py-2"
+                className="inline-flex items-center gap-2.5 rounded-full border border-stone/45 bg-cream px-4 py-2"
               >
                 <span
                   aria-hidden="true"
@@ -194,7 +194,7 @@ export function Gallery() {
                     status === 'live' && 'animate-soft-pulse',
                   )}
                 />
-                <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-stone">
+                <span className="text-xs font-semibold uppercase tracking-[0.14em] text-stone">
                   {statusInfo.label}
                 </span>
               </div>
@@ -207,7 +207,7 @@ export function Gallery() {
         </div>
 
         {error && hasItems ? (
-          <div className="mt-8 flex flex-col gap-3 border border-clay/25 bg-clay/5 px-4 py-3 text-[12px] text-clay sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-8 flex flex-col gap-3 rounded-2xl border border-clay/25 bg-clay/5 px-5 py-3 text-[12px] text-clay sm:flex-row sm:items-center sm:justify-between">
             <p className="flex items-start gap-2">
               <AlertCircle size={15} className="mt-0.5 shrink-0" aria-hidden="true" />
               Não foi possível sincronizar agora. As imagens exibidas podem estar desatualizadas.
@@ -224,7 +224,7 @@ export function Gallery() {
         ) : null}
 
         {showFilters ? (
-          <div className="mt-10 flex flex-col gap-4 border-y border-line py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-10 flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div
               role="group"
               aria-label="Filtrar galeria por categoria"
@@ -239,10 +239,10 @@ export function Gallery() {
                   syncGalleryUrl(ALL_CATEGORIES, null)
                 }}
                 className={cn(
-                  'shrink-0 border px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] transition',
+                  'shrink-0 rounded-full border px-4 py-2 text-xs font-medium tracking-[0.04em] transition',
                   selectedCategory === ALL_CATEGORIES
                     ? 'border-forest bg-forest text-parchment'
-                    : 'border-line text-stone hover:border-forest/40 hover:text-forest',
+                    : 'border-stone/45 text-stone hover:border-forest hover:text-forest',
                 )}
               >
                 Todas
@@ -263,10 +263,10 @@ export function Gallery() {
                       syncGalleryUrl(category, null)
                     }}
                     className={cn(
-                      'shrink-0 border px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] transition',
+                      'shrink-0 rounded-full border px-4 py-2 text-xs font-medium tracking-[0.04em] transition',
                       selectedCategory === category
                         ? 'border-forest bg-forest text-parchment'
-                        : 'border-line text-stone hover:border-forest/40 hover:text-forest',
+                        : 'border-stone/45 text-stone hover:border-forest hover:text-forest',
                     )}
                   >
                     {category}
@@ -276,7 +276,7 @@ export function Gallery() {
               })}
             </div>
 
-            <p className="shrink-0 text-[11px] uppercase tracking-[0.16em] text-stone">
+            <p className="shrink-0 text-xs uppercase tracking-[0.16em] text-stone">
               {filteredItems.length} {filteredItems.length === 1 ? 'imagem' : 'imagens'}
             </p>
           </div>
@@ -286,7 +286,7 @@ export function Gallery() {
           {loading ? (
             <GallerySkeleton />
           ) : !isSupabaseConfigured ? (
-            <div className="border border-line bg-cream px-6 py-14 text-center sm:px-10 sm:py-20">
+            <div className="rounded-[36px] bg-cream px-6 py-14 text-center sm:px-10 sm:py-20">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-line text-stone">
                 <ImageOff size={23} strokeWidth={1.4} aria-hidden="true" />
               </div>
@@ -299,11 +299,11 @@ export function Gallery() {
               </p>
 
               {import.meta.env.DEV ? (
-                <details className="mx-auto mt-7 max-w-2xl border border-dashed border-line bg-parchment p-4 text-left">
-                  <summary className="cursor-pointer text-[11px] font-semibold uppercase tracking-[0.14em] text-forest">
+                <details className="mx-auto mt-7 max-w-2xl rounded-2xl border border-dashed border-stone/40 bg-parchment p-4 text-left">
+                  <summary className="cursor-pointer text-xs font-semibold uppercase tracking-[0.14em] text-forest">
                     Instruções para o ambiente de desenvolvimento
                   </summary>
-                  <div className="mt-3 space-y-2 font-mono text-[11px] leading-relaxed text-stone">
+                  <div className="mt-3 space-y-2 font-mono text-xs leading-relaxed text-stone">
                     <p>1. Copie .env.example para .env.local e preencha as variáveis do Supabase.</p>
                     <p>2. Execute a migração SQL em supabase/migrations.</p>
                     <p>3. Publique a Edge Function e rode npm run seed:galeria.</p>
@@ -313,7 +313,7 @@ export function Gallery() {
               ) : null}
             </div>
           ) : error && !hasItems ? (
-            <div className="border border-clay/25 bg-clay/5 px-6 py-14 text-center sm:py-20">
+            <div className="rounded-[36px] border border-clay/25 bg-clay/5 px-6 py-14 text-center sm:py-20">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-clay/30 text-clay">
                 <AlertCircle size={23} strokeWidth={1.5} aria-hidden="true" />
               </div>
@@ -326,14 +326,14 @@ export function Gallery() {
               <button
                 type="button"
                 onClick={refresh}
-                className="group mt-7 inline-flex items-center gap-2 border border-forest/25 px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-forest transition hover:bg-forest hover:text-parchment"
+                className="group mt-7 inline-flex items-center gap-2 rounded-full border border-forest/60 px-7 py-3 text-[12px] font-medium tracking-[0.06em] text-forest transition hover:bg-forest hover:text-cream"
               >
                 <RefreshCw size={14} strokeWidth={1.7} aria-hidden="true" />
                 Tentar novamente
               </button>
             </div>
           ) : filteredItems.length === 0 ? (
-            <div className="border border-line bg-cream px-6 py-14 text-center sm:py-20">
+            <div className="rounded-[36px] bg-cream px-6 py-14 text-center sm:py-20">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-line text-stone">
                 <ImageOff size={23} strokeWidth={1.4} aria-hidden="true" />
               </div>
@@ -362,7 +362,7 @@ export function Gallery() {
           )}
         </div>
 
-        <div className="mt-12 flex flex-col gap-4 border-t border-line pt-6 text-[11px] leading-relaxed text-stone sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-12 flex flex-col gap-4 border-t border-line pt-6 text-xs leading-relaxed text-stone sm:flex-row sm:items-center sm:justify-between">
           <p className="max-w-2xl">
             Legendas e categorias demonstrativas, sujeitas à validação curatorial. Créditos das
             fotografias: Prefeitura de Parauapebas / Assessoria de Comunicação (2023).

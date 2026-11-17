@@ -9,8 +9,11 @@ import { Gallery } from './components/home/Gallery'
 import { Hero } from './components/home/Hero'
 import { Visit } from './components/home/Visit'
 import { ParallaxBand } from './components/ui/ParallaxBand'
+import { useSmoothScroll } from './hooks/useSmoothScroll'
 
 export default function App() {
+  useSmoothScroll()
+
   return (
     <div className="min-h-screen bg-parchment">
       <Header />

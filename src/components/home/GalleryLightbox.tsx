@@ -73,10 +73,10 @@ export function GalleryLightbox({ items, index, onClose, onNavigate }: GalleryLi
 
           <div className="flex shrink-0 items-center gap-4">
             <span
-              className="text-[11px] tabular-nums tracking-[0.14em] text-parchment/75"
+              className="text-xs tabular-nums tracking-[0.06em] text-parchment/80"
               aria-live="polite"
             >
-              {String(index + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
+              Foto {index + 1} de {total}
             </span>
             <button
               type="button"
@@ -109,10 +109,10 @@ export function GalleryLightbox({ items, index, onClose, onNavigate }: GalleryLi
               width={1280}
               height={720}
               decoding="async"
-              className="animate-fade-in max-h-[70vh] max-w-full object-contain shadow-[0_30px_80px_-20px_rgba(0,0,0,0.55)]"
+              className="animate-fade-in max-h-[70vh] max-w-full rounded-2xl object-contain shadow-[0_30px_80px_-20px_rgba(0,0,0,0.55)]"
             />
           ) : (
-            <div className="flex flex-col items-center gap-4 border border-parchment/15 px-10 py-16 text-parchment/70">
+            <div className="flex flex-col items-center gap-4 rounded-2xl border border-parchment/30 px-10 py-16 text-parchment/70">
               <ImageOff size={30} strokeWidth={1.3} aria-hidden="true" />
               <p className="text-[11px] uppercase tracking-[0.16em]">Imagem indisponível</p>
             </div>

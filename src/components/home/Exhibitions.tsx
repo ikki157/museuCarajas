@@ -1,12 +1,68 @@
+import { useLayoutEffect, useRef } from 'react'
 import { Archive, ArrowRight, GraduationCap, Mail } from 'lucide-react'
 import { buildMailto } from '../../lib/utils'
+import { gsap } from '../../lib/gsap'
 import { ButtonLink } from '../ui/Button'
 import { Reveal } from '../ui/Reveal'
 import { SectionHeading } from '../ui/SectionHeading'
 
 export function Exhibitions() {
+  const sectionRef = useRef<HTMLElement>(null)
+
+  useLayoutEffect(() => {
+    const ctx = gsap.context(() => {
+      const mm = gsap.matchMedia()
+
+      mm.add('(prefers-reduced-motion: reduce)', () => {
+        gsap.set(['.exhibitions-photo-reveal', '.exhibitions-card-item'], {
+          clearProps: 'all',
+          opacity: 1,
+          y: 0,
+          clipPath: 'none',
+        })
+      })
+
+      mm.add('(prefers-reduced-motion: no-preference)', () => {
+        gsap.fromTo(
+          '.exhibitions-photo-reveal',
+          { clipPath: 'inset(12% 8% 12% 8% round 36px)' },
+          {
+            clipPath: 'inset(0% 0% 0% 0% round 36px)',
+            ease: 'none',
+            scrollTrigger: {
+              trigger: '.exhibitions-photo-reveal',
+              start: 'top 90%',
+              end: 'top 35%',
+              scrub: 0.6,
+            },
+          },
+        )
+
+        gsap.fromTo(
+          '.exhibitions-card-item',
+          { opacity: 0, y: 22 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.85,
+            stagger: 0.08,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: '.exhibitions-editorial-card',
+              start: 'top 84%',
+              once: true,
+            },
+          },
+        )
+      })
+    }, sectionRef)
+
+    return () => ctx.revert()
+  }, [])
+
   return (
     <section
+      ref={sectionRef}
       id="exposicoes"
       aria-labelledby="exposicoes-title"
       className="relative overflow-hidden bg-sand py-24 lg:py-32"
@@ -33,8 +89,8 @@ export function Exhibitions() {
         </div>
 
         <div className="mt-14 grid gap-6 lg:mt-20 lg:grid-cols-12 lg:gap-8">
-          <Reveal className="lg:col-span-7">
-            <figure className="img-zoom relative h-full overflow-hidden rounded-[36px] bg-sand-deep">
+          <div className="lg:col-span-7">
+            <figure className="exhibitions-photo-reveal img-zoom relative h-full overflow-hidden rounded-[36px] bg-sand-deep will-change-[clip-path]">
               <img
                 src="/images/museu/museu-05.jpg"
                 alt="Painel de abertura da exposição Parauapebas: Conhecer para Preservar, no interior do museu."
@@ -57,18 +113,18 @@ export function Exhibitions() {
                 </p>
               </figcaption>
             </figure>
-          </Reveal>
+          </div>
 
-          <div className="flex flex-col rounded-[36px] bg-cream p-8 sm:p-12 lg:col-span-5">
-            <Reveal delay={100}>
-              <p className="eyebrow text-clay">A mostra</p>
-              <h3 className="display mt-4 text-[clamp(1.7rem,3vw,2.4rem)] font-medium leading-[1.08] text-forest">
+          <div className="exhibitions-editorial-card flex flex-col justify-between rounded-[36px] bg-cream p-8 sm:p-12 lg:col-span-5">
+            <div>
+              <p className="exhibitions-card-item eyebrow text-clay">A mostra</p>
+              <h3 className="exhibitions-card-item display mt-4 text-[clamp(1.7rem,3vw,2.4rem)] font-medium leading-[1.08] text-forest">
                 Parauapebas: Conhecer para Preservar
               </h3>
-              <p className="display mt-4 text-[clamp(1.15rem,1.8vw,1.4rem)] font-medium leading-snug text-forest/80">
+              <p className="exhibitions-card-item display mt-4 text-[clamp(1.15rem,1.8vw,1.4rem)] font-medium leading-snug text-forest/80">
                 Uma narrativa sobre a memória coletiva da região.
               </p>
-              <div className="mt-5 space-y-4 text-[14.5px] leading-relaxed text-stone">
+              <div className="exhibitions-card-item mt-5 space-y-4 text-[14.5px] leading-relaxed text-stone">
                 <p>
                   A exposição apresenta um breve histórico do município e parte dos encontros em
                   torno do patrimônio cultural de Parauapebas. Textos e objetos tradicionais
@@ -79,9 +135,9 @@ export function Exhibitions() {
                   arqueológicos de Carajás e os processos que marcaram a formação da cidade.
                 </p>
               </div>
-            </Reveal>
+            </div>
 
-            <Reveal delay={160}>
+            <div className="exhibitions-card-item">
               <ButtonLink href="#visite" variant="primary" className="mt-8 lg:mt-10">
                 Planeje sua visita
                 <ArrowRight
@@ -91,7 +147,7 @@ export function Exhibitions() {
                   aria-hidden="true"
                 />
               </ButtonLink>
-            </Reveal>
+            </div>
           </div>
         </div>
 

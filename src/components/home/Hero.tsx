@@ -1,7 +1,7 @@
-import { useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import { ArrowDown, ArrowUpRight } from 'lucide-react'
 import { heroImage, museum, photoCredit, visit } from '../../data/content'
-import { gsap, useGSAP } from '../../lib/gsap'
+import { gsap } from '../../lib/gsap'
 import { ButtonLink } from '../ui/Button'
 
 function Words({ text, className = '' }: { text: string; className?: string }) {
@@ -23,9 +23,26 @@ function Words({ text, className = '' }: { text: string; className?: string }) {
 export function Hero() {
   const root = useRef<HTMLElement>(null)
 
-  useGSAP(
-    () => {
+  useLayoutEffect(() => {
+    const ctx = gsap.context(() => {
       const mm = gsap.matchMedia()
+
+      mm.add('(prefers-reduced-motion: reduce)', () => {
+        gsap.set(
+          [
+            '.hero-bg',
+            '.hero-bg-wrap',
+            '.hero-veil',
+            '.hero-eyebrow > *',
+            '.hero-word',
+            '.hero-sub',
+            '.hero-cta',
+            '.hero-meta',
+            '.hero-content',
+          ],
+          { clearProps: 'all' },
+        )
+      })
 
       mm.add('(prefers-reduced-motion: no-preference)', () => {
         // Entrada orquestrada
@@ -38,12 +55,16 @@ export function Hero() {
           .from('.hero-cta', { opacity: 0, y: 24, stagger: 0.1, duration: 0.9 }, 1.15)
           .from('.hero-meta', { opacity: 0, y: 20, stagger: 0.08, duration: 0.8 }, 1.35)
 
-        // Parallax por camadas no scroll
+        // Parallax em camadas no scroll: imagem reduz sutilmente de 1.08 para 1.0 e desliza mais lento que o título
         const st = { trigger: root.current, start: 'top top', end: 'bottom top', scrub: true }
-        gsap.to('.hero-bg-wrap', { yPercent: 22, ease: 'none', scrollTrigger: st })
-        gsap.to('.hero-content', { yPercent: -12, opacity: 0.15, ease: 'none', scrollTrigger: st })
+        gsap.fromTo(
+          '.hero-bg-wrap',
+          { scale: 1.08, yPercent: 0 },
+          { scale: 1.0, yPercent: 18, ease: 'none', scrollTrigger: st },
+        )
+        gsap.to('.hero-content', { yPercent: -12, opacity: 0.2, ease: 'none', scrollTrigger: st })
 
-        // Cursor: profundidade e luz que acompanha o mouse
+        // Cursor: profundidade sutil acompanhando o ponteiro
         const bgX = gsap.quickTo('.hero-bg', 'x', { duration: 1.2, ease: 'power3' })
         const bgY = gsap.quickTo('.hero-bg', 'y', { duration: 1.2, ease: 'power3' })
         const onMove = (e: PointerEvent) => {
@@ -56,9 +77,10 @@ export function Hero() {
         el?.addEventListener('pointermove', onMove)
         return () => el?.removeEventListener('pointermove', onMove)
       })
-    },
-    { scope: root },
-  )
+    }, root)
+
+    return () => ctx.revert()
+  }, [])
 
   return (
     <section

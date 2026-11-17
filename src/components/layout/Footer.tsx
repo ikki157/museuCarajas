@@ -6,11 +6,9 @@ export function Footer() {
   const year = new Date().getFullYear()
 
   return (
-    <footer className="texture-lines relative overflow-hidden bg-forest-deep text-parchment">
-      <div className="h-px w-full bg-gradient-to-r from-transparent via-copper/70 to-transparent" />
-
-      <div className="site-container pb-8 pt-16 lg:pt-20">
-        <div className="grid gap-12 border-b border-parchment/10 pb-14 lg:grid-cols-12 lg:gap-8">
+    <footer className="relative overflow-hidden bg-forest-deep text-parchment">
+      <div className="site-container pb-10 pt-20 lg:pt-28">
+        <div className="grid gap-14 border-b border-parchment/15 pb-16 lg:grid-cols-12 lg:gap-8">
           <div className="lg:col-span-5">
             <a href="#inicio" aria-label="Voltar ao início" className="inline-block">
               <Logo tone="light" />
@@ -21,7 +19,7 @@ export function Footer() {
             </p>
             <a
               href="#visite"
-              className="group mt-7 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-copper-light transition hover:text-parchment"
+              className="group mt-7 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-copper-light transition hover:text-parchment"
             >
               Planeje sua visita
               <ArrowUpRight
@@ -105,7 +103,7 @@ export function Footer() {
           <div className="flex items-start lg:col-span-4 lg:justify-end">
             <a
               href="#inicio"
-              className="group inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-parchment/75 transition hover:text-parchment"
+              className="group inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-parchment/75 transition hover:text-parchment"
             >
               Voltar ao topo
               <ArrowUp
@@ -118,7 +116,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 pt-7 text-[11px] text-parchment/70 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-2 pt-7 text-xs text-parchment/70 sm:flex-row sm:items-center sm:justify-between">
           <p>
             © {year} {museum.name} · {museum.city} – {museum.stateCode}
           </p>

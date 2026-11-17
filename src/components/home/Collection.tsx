@@ -1,6 +1,7 @@
-import { useState, type KeyboardEvent } from 'react'
+import { useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { ArrowRight, ArrowUpRight } from 'lucide-react'
 import { collectionCategories, photoCredit } from '../../data/content'
+import { gsap } from '../../lib/gsap'
 import { cn } from '../../lib/utils'
 import { Reveal } from '../ui/Reveal'
 import { SectionHeading } from '../ui/SectionHeading'
@@ -15,9 +16,68 @@ function getInitialCollectionId(): string {
 }
 
 export function Collection() {
+  const sectionRef = useRef<HTMLElement>(null)
+  const hasMountedRef = useRef(false)
   const [activeId, setActiveId] = useState(getInitialCollectionId)
   const active =
     collectionCategories.find((category) => category.id === activeId) ?? collectionCategories[0]
+
+  useLayoutEffect(() => {
+    // Evita animar fade-out no carregamento inicial antes de o usuário trocar de aba
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true
+      return
+    }
+
+    const panel = sectionRef.current?.querySelector<HTMLElement>(`#panel-${active.id}`)
+    if (!panel) return
+
+    const ctx = gsap.context(() => {
+      const mm = gsap.matchMedia()
+
+      mm.add('(prefers-reduced-motion: reduce)', () => {
+        const media = panel.querySelector('.collection-media')
+        const captions = panel.querySelectorAll('.collection-caption-item')
+        if (media) gsap.set(media, { clearProps: 'all', opacity: 1, scale: 1, clipPath: 'none' })
+        if (captions.length) gsap.set(captions, { clearProps: 'all', opacity: 1, y: 0 })
+      })
+
+      mm.add('(prefers-reduced-motion: no-preference)', () => {
+        const media = panel.querySelector('.collection-media')
+        const captions = panel.querySelectorAll('.collection-caption-item')
+
+        if (media) {
+          gsap.fromTo(
+            media,
+            { opacity: 0, scale: 1.04, clipPath: 'inset(6% 4% 6% 4% round 36px)' },
+            {
+              opacity: 1,
+              scale: 1,
+              clipPath: 'inset(0% 0% 0% 0% round 36px)',
+              duration: 0.65,
+              ease: 'power3.out',
+            },
+          )
+        }
+
+        if (captions.length) {
+          gsap.fromTo(
+            captions,
+            { opacity: 0, y: 14 },
+            {
+              opacity: 1,
+              y: 0,
+              duration: 0.55,
+              stagger: 0.06,
+              ease: 'power3.out',
+            },
+          )
+        }
+      })
+    }, sectionRef)
+
+    return () => ctx.revert()
+  }, [active.id])
 
   const selectCategory = (categoryId: string) => {
     setActiveId(categoryId)
@@ -55,9 +115,10 @@ export function Collection() {
 
   return (
     <section
+      ref={sectionRef}
       id="acervo"
       aria-labelledby="acervo-title"
-      className="texture-lines relative overflow-hidden bg-forest-deep py-24 text-parchment lg:py-32"
+      className="relative overflow-hidden bg-forest-deep py-24 text-parchment lg:py-32"
     >
       <div
         aria-hidden="true"
@@ -85,7 +146,7 @@ export function Collection() {
               </p>
               <a
                 href="#galeria"
-                className="group mt-6 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-copper-light transition hover:text-parchment"
+                className="group mt-6 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-copper-light transition hover:text-parchment"
               >
                 Ver galeria de fotografias
                 <ArrowRight
@@ -106,7 +167,7 @@ export function Collection() {
                 role="tablist"
                 aria-label="Categorias do acervo"
                 aria-orientation="vertical"
-                className="border-t border-parchment/15"
+                className="flex flex-col gap-3"
               >
                 {collectionCategories.map((category, index) => {
                   const isActive = category.id === active.id
@@ -123,20 +184,12 @@ export function Collection() {
                       onClick={() => selectCategory(category.id)}
                       onKeyDown={(event) => handleTabKeyDown(event, index)}
                       className={cn(
-                        'group flex w-full items-center gap-4 border-b border-parchment/15 py-4 text-left transition-colors duration-300 sm:gap-5 sm:py-5',
+                        'group flex w-full items-center gap-4 rounded-full border px-6 py-4 text-left transition-colors duration-300 sm:px-7 sm:py-5',
                         isActive
-                          ? 'text-parchment'
-                          : 'text-parchment/70 hover:text-parchment',
+                          ? 'border-parchment/60 bg-parchment/10 text-parchment'
+                          : 'border-parchment/30 text-parchment/80 hover:border-parchment/60 hover:text-parchment',
                       )}
                     >
-                      <span
-                        className={cn(
-                          'text-[11px] font-medium tabular-nums tracking-[0.18em] transition-colors',
-                          isActive ? 'text-copper-light' : 'text-parchment/70',
-                        )}
-                      >
-                        {String(index + 1).padStart(2, '0')}
-                      </span>
                       <span
                         className={cn(
                           'display flex-1 text-[clamp(1.15rem,2.4vw,1.55rem)] font-medium leading-tight tracking-[-0.01em] transition-colors',
@@ -161,7 +214,7 @@ export function Collection() {
                 })}
               </div>
 
-              <p className="mt-5 max-w-sm text-[11px] leading-relaxed text-parchment/70">
+              <p className="mt-5 max-w-sm text-xs leading-relaxed text-parchment/75">
                 Categorias e legendas demonstrativas. A classificação curatorial definitiva é de
                 responsabilidade do museu.
               </p>
@@ -170,7 +223,7 @@ export function Collection() {
 
           <div className="lg:col-span-7">
             <Reveal delay={100}>
-              {collectionCategories.map((category, index) => {
+              {collectionCategories.map((category) => {
                 const isActive = category.id === active.id
 
                 return (
@@ -181,10 +234,9 @@ export function Collection() {
                     aria-labelledby={`tab-${category.id}`}
                     tabIndex={0}
                     hidden={!isActive}
-                    className={isActive ? 'animate-fade-in' : undefined}
                   >
                     <figure>
-                      <div className="img-zoom relative overflow-hidden bg-forest-soft">
+                      <div className="collection-media img-zoom relative overflow-hidden rounded-[36px] bg-forest-soft will-change-[transform,opacity,clip-path]">
                         <img
                           src={category.image}
                           alt={category.alt}
@@ -199,28 +251,26 @@ export function Collection() {
                           aria-hidden="true"
                           className="absolute inset-0 bg-gradient-to-t from-forest-deep/45 via-transparent to-transparent"
                         />
-                        <p className="absolute left-4 top-4 border border-parchment/25 bg-forest-deep/75 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-parchment/90 backdrop-blur-sm">
-                          Acervo · {String(index + 1).padStart(2, '0')}
+                        <p className="absolute left-5 top-5 rounded-full bg-forest-deep/75 px-4 py-2 text-xs font-medium tracking-[0.06em] text-parchment backdrop-blur-sm">
+                          {category.title}
                         </p>
                       </div>
 
-                      <figcaption className="mt-6 border-t border-parchment/15 pt-5">
+                      <figcaption className="mt-7 px-2">
                         <div className="flex items-start justify-between gap-6">
                           <div>
-                            <p className="eyebrow text-copper-light">Coleção</p>
-                            <h3 className="display mt-3 text-[clamp(1.6rem,3.2vw,2.35rem)] font-medium leading-[1.08] text-parchment">
+                            <p className="collection-caption-item eyebrow text-copper-light">
+                              Coleção
+                            </p>
+                            <h3 className="collection-caption-item display mt-3 text-[clamp(1.6rem,3.2vw,2.35rem)] font-medium leading-[1.08] text-parchment">
                               {category.title}
                             </h3>
-                            <p className="mt-4 max-w-xl text-[14px] leading-relaxed text-parchment/75">
+                            <p className="collection-caption-item mt-4 max-w-xl text-[14px] leading-relaxed text-parchment/75">
                               {category.description}
                             </p>
                           </div>
-                          <span className="hidden shrink-0 pt-1 text-[11px] tabular-nums tracking-[0.16em] text-parchment/70 sm:block">
-                            {String(index + 1).padStart(2, '0')} /{' '}
-                            {String(collectionCategories.length).padStart(2, '0')}
-                          </span>
                         </div>
-                        <p className="mt-5 text-[11px] leading-relaxed text-parchment/70">
+                        <p className="collection-caption-item mt-5 text-xs leading-relaxed text-parchment/75">
                           Fotografia do acervo expositivo · {photoCredit} (2023)
                         </p>
                       </figcaption>

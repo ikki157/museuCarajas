@@ -312,9 +312,8 @@ export function ContributionForm() {
         tabIndex={-1}
         role="status"
         aria-live="polite"
-        className="relative border border-line bg-cream p-6 shadow-[0_30px_80px_-50px_rgba(16,33,25,0.45)] outline-none sm:p-9 lg:p-10"
+        className="relative rounded-[36px] bg-cream p-6 shadow-[0_24px_60px_-35px_rgba(21,34,28,0.25)] sm:p-10 lg:p-12 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest"
       >
-        <div className="absolute inset-x-0 top-0 h-1 bg-[#6f8b5d]" aria-hidden="true" />
         <div className="flex h-14 w-14 items-center justify-center rounded-full border border-[#6f8b5d]/35 bg-[#6f8b5d]/10 text-[#4e6a3e]">
           <CheckCircle2 size={26} strokeWidth={1.6} aria-hidden="true" />
         </div>
@@ -327,7 +326,7 @@ export function ContributionForm() {
           automaticamente na galeria.
         </p>
 
-        <div className="mt-7 border border-line bg-parchment px-5 py-4">
+        <div className="mt-7 rounded-2xl bg-parchment px-5 py-4">
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-stone">
             Protocolo de envio
           </p>
@@ -353,7 +352,7 @@ export function ContributionForm() {
           </Button>
           <a
             href="#galeria"
-            className="inline-flex items-center justify-center gap-2 border border-forest/25 px-5 py-3.5 text-[11.5px] font-semibold uppercase tracking-[0.16em] text-forest transition hover:bg-forest hover:text-parchment"
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-forest/60 px-7 py-3.5 text-[12px] font-medium tracking-[0.06em] text-forest transition hover:bg-forest hover:text-cream"
           >
             Conhecer a galeria
           </a>
@@ -363,8 +362,7 @@ export function ContributionForm() {
   }
 
   return (
-    <div className="relative border border-line bg-cream p-5 shadow-[0_30px_80px_-50px_rgba(16,33,25,0.45)] sm:p-8 lg:p-10">
-      <div className="absolute inset-x-0 top-0 h-1 bg-clay" aria-hidden="true" />
+    <div className="relative rounded-[36px] bg-cream p-6 shadow-[0_24px_60px_-35px_rgba(21,34,28,0.25)] sm:p-10 lg:p-12">
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
@@ -376,7 +374,7 @@ export function ContributionForm() {
             Envie sua contribuição
           </h3>
         </div>
-        <span className="inline-flex shrink-0 items-center gap-1.5 border border-forest/20 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-forest/80">
+        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-forest/50 px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-forest/80">
           <Lock size={11} strokeWidth={1.8} aria-hidden="true" />
           Projeto Salvaguarda
         </span>
@@ -388,7 +386,7 @@ export function ContributionForm() {
       </p>
 
       {!isSupabaseConfigured ? (
-        <div className="mt-6 flex items-start gap-3 border border-clay/25 bg-clay/5 p-4 text-clay">
+        <div className="mt-6 flex items-start gap-3 rounded-2xl border border-clay/25 bg-clay/5 p-4 text-clay">
           <AlertTriangle size={18} strokeWidth={1.7} className="mt-0.5 shrink-0" aria-hidden="true" />
           <div className="text-[12px] leading-relaxed">
             <p className="font-semibold">Envio indisponível neste ambiente</p>
@@ -569,9 +567,9 @@ export function ContributionForm() {
               />
 
               {file ? (
-                <div className="border border-line bg-parchment p-4">
+                <div className="rounded-2xl bg-parchment p-4">
                   <div className="flex items-start gap-4">
-                    <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden border border-line bg-sand-deep">
+                    <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-sand-deep">
                       {file.category === 'fotografia' && objectUrl ? (
                         <img
                           src={objectUrl}
@@ -634,12 +632,12 @@ export function ContributionForm() {
                   onDragLeave={() => setIsDragging(false)}
                   onDrop={onDrop}
                   className={cn(
-                    'border border-dashed p-6 transition-colors peer-focus-visible:border-copper peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-copper sm:p-8',
+                    'rounded-3xl border border-dashed p-6 transition-colors peer-focus-visible:border-forest peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-forest sm:p-8',
                     isDragging
-                      ? 'border-copper bg-copper/5'
+                      ? 'border-forest bg-forest/5'
                       : showError('arquivo')
                         ? 'border-clay/50 bg-clay/5'
-                        : 'border-line bg-parchment hover:border-copper/50',
+                        : 'border-stone/50 bg-parchment hover:border-forest',
                   )}
                 >
                   <label
@@ -712,7 +710,7 @@ export function ContributionForm() {
           {submitError ? (
             <div
               role="alert"
-              className="mt-6 flex items-start gap-3 border border-clay/30 bg-clay/5 p-4 text-[12px] leading-relaxed text-clay"
+              className="mt-6 flex items-start gap-3 rounded-2xl border border-clay/30 bg-clay/5 p-4 text-[12px] leading-relaxed text-clay"
             >
               <AlertCircle size={17} strokeWidth={1.8} className="mt-0.5 shrink-0" aria-hidden="true" />
               <div>

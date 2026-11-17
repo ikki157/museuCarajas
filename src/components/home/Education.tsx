@@ -1,16 +1,72 @@
+import { useLayoutEffect, useRef } from 'react'
 import { ArrowRight, Mail } from 'lucide-react'
 import { buildMailto } from '../../lib/utils'
 import { educationAudiences } from '../../data/content'
+import { gsap } from '../../lib/gsap'
 import { ButtonLink } from '../ui/Button'
 import { Reveal } from '../ui/Reveal'
 import { SectionHeading } from '../ui/SectionHeading'
 
 export function Education() {
+  const sectionRef = useRef<HTMLElement>(null)
+
+  useLayoutEffect(() => {
+    const ctx = gsap.context(() => {
+      const mm = gsap.matchMedia()
+
+      mm.add('(prefers-reduced-motion: reduce)', () => {
+        gsap.set(['.education-photo-reveal', '.education-audience-card'], {
+          clearProps: 'all',
+          opacity: 1,
+          y: 0,
+          clipPath: 'none',
+        })
+      })
+
+      mm.add('(prefers-reduced-motion: no-preference)', () => {
+        gsap.fromTo(
+          '.education-photo-reveal',
+          { clipPath: 'inset(12% 8% 12% 8% round 36px)' },
+          {
+            clipPath: 'inset(0% 0% 0% 0% round 36px)',
+            ease: 'none',
+            scrollTrigger: {
+              trigger: '.education-photo-reveal',
+              start: 'top 90%',
+              end: 'top 35%',
+              scrub: 0.6,
+            },
+          },
+        )
+
+        gsap.fromTo(
+          '.education-audience-card',
+          { opacity: 0, y: 22 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.8,
+            stagger: 0.1,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: '.education-audience-list',
+              start: 'top 86%',
+              once: true,
+            },
+          },
+        )
+      })
+    }, sectionRef)
+
+    return () => ctx.revert()
+  }, [])
+
   return (
     <section
+      ref={sectionRef}
       id="educacao"
       aria-labelledby="educacao-title"
-      className="texture-lines relative overflow-hidden bg-forest py-24 text-parchment lg:py-32"
+      className="relative overflow-hidden bg-forest py-24 text-parchment lg:py-32"
     >
       <div
         aria-hidden="true"
@@ -44,39 +100,32 @@ export function Education() {
             </Reveal>
 
             <Reveal delay={140}>
-              <blockquote className="mt-9 border-l-2 border-copper-light/70 pl-6">
+              <blockquote className="mt-9 border-l-2 border-copper-light/60 pl-6">
                 <p className="display text-[clamp(1.3rem,2.3vw,1.7rem)] font-medium leading-snug text-parchment/90">
                   “Parauapebas é conhecida também como uma área muito importante na arqueologia
                   amazônica, com datação encontrada na Serra dos Carajás com mais de 11 mil anos.”
                 </p>
-                <footer className="mt-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-parchment/75">
+                <footer className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-parchment/75">
                   Rogério Andrade · Arqueólogo do museu
                 </footer>
               </blockquote>
             </Reveal>
 
-            <Reveal delay={200}>
-              <div className="mt-10 border-t border-parchment/15">
-                {educationAudiences.map((audience, index) => (
-                  <div
-                    key={audience.title}
-                    className="grid gap-2 border-b border-parchment/15 py-5 sm:grid-cols-[auto_1fr] sm:gap-6"
-                  >
-                    <span className="text-[11px] font-medium tabular-nums tracking-[0.18em] text-copper-light sm:pt-1">
-                      {String(index + 1).padStart(2, '0')}
-                    </span>
-                    <div>
-                      <h3 className="display text-[19px] font-medium leading-tight text-parchment">
-                        {audience.title}
-                      </h3>
-                      <p className="mt-1.5 max-w-xl text-[13px] leading-relaxed text-parchment/75">
-                        {audience.description}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Reveal>
+            <div className="education-audience-list mt-10 grid gap-4">
+              {educationAudiences.map((audience) => (
+                <div
+                  key={audience.title}
+                  className="education-audience-card rounded-[28px] bg-forest-soft/55 p-6"
+                >
+                  <h3 className="display text-[19px] font-medium leading-tight text-parchment">
+                    {audience.title}
+                  </h3>
+                  <p className="mt-2 max-w-xl text-[13.5px] leading-relaxed text-parchment/80">
+                    {audience.description}
+                  </p>
+                </div>
+              ))}
+            </div>
 
             <Reveal delay={260}>
               <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -100,7 +149,7 @@ export function Education() {
                   />
                 </ButtonLink>
               </div>
-              <p className="mt-4 max-w-xl text-[11px] leading-relaxed text-parchment/70">
+              <p className="mt-4 max-w-xl text-xs leading-relaxed text-parchment/75">
                 Visitas de escolas e outras instituições devem ser solicitadas com ofício enviado
                 aos e-mails institucionais do museu.
               </p>
@@ -108,31 +157,29 @@ export function Education() {
           </div>
 
           <div className="lg:col-span-5">
-            <Reveal delay={120}>
-              <figure className="relative pb-6">
-                <div className="img-zoom overflow-hidden bg-forest-soft">
-                  <img
-                    src="/images/museu/museu-04.jpg"
-                    alt="Instrumentos musicais e adornos com plumária em exposição no museu."
-                    width={1280}
-                    height={720}
-                    loading="lazy"
-                    decoding="async"
-                    className="aspect-[4/5] w-full object-cover"
-                  />
-                </div>
-                <figcaption className="absolute -bottom-5 left-4 right-4 border border-parchment/15 bg-forest-deep/95 p-5 text-parchment/80 shadow-2xl backdrop-blur-sm sm:left-6 sm:right-6">
-                  <p className="eyebrow text-copper-light">Acervo em diálogo</p>
-                  <p className="mt-2 text-[12.5px] leading-relaxed">
-                    Instrumentos e adornos ajudam a contar histórias sobre técnicas, saberes e
-                    relações culturais na Amazônia.
-                  </p>
-                  <p className="mt-3 text-[11px] leading-relaxed text-parchment/70">
-                    Fotografia: Prefeitura de Parauapebas / Ascom (2023)
-                  </p>
-                </figcaption>
-              </figure>
-            </Reveal>
+            <figure className="relative pb-6">
+              <div className="education-photo-reveal img-zoom overflow-hidden rounded-[36px] bg-forest-soft will-change-[clip-path]">
+                <img
+                  src="/images/museu/museu-04.jpg"
+                  alt="Instrumentos musicais e adornos com plumária em exposição no museu."
+                  width={1280}
+                  height={720}
+                  loading="lazy"
+                  decoding="async"
+                  className="aspect-[4/5] w-full object-cover"
+                />
+              </div>
+              <figcaption className="absolute -bottom-5 left-4 right-4 rounded-3xl bg-forest-deep/95 p-5 text-parchment/85 shadow-2xl backdrop-blur-sm sm:left-6 sm:right-6">
+                <p className="eyebrow text-copper-light">Acervo em diálogo</p>
+                <p className="mt-2 text-[12.5px] leading-relaxed">
+                  Instrumentos e adornos ajudam a contar histórias sobre técnicas, saberes e
+                  relações culturais na Amazônia.
+                </p>
+                <p className="mt-3 text-xs leading-relaxed text-parchment/75">
+                  Fotografia: Prefeitura de Parauapebas / Ascom (2023)
+                </p>
+              </figcaption>
+            </figure>
           </div>
         </div>
       </div>

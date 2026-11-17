@@ -39,7 +39,7 @@ export function Visit() {
                 <div className="grid gap-4 border-b border-line py-6 sm:grid-cols-[140px_1fr] sm:gap-8">
                   <div className="flex items-center gap-2.5 text-forest">
                     <MapPin size={17} strokeWidth={1.6} aria-hidden="true" />
-                    <h3 className="text-[11px] font-semibold uppercase tracking-[0.16em]">
+                    <h3 className="text-xs font-semibold uppercase tracking-[0.16em]">
                       Endereço
                     </h3>
                   </div>
@@ -53,7 +53,7 @@ export function Visit() {
                       href={visit.mapUrl}
                       target="_blank"
                       rel="noreferrer noopener"
-                      className="group mt-2.5 inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-clay transition hover:text-clay-dark"
+                      className="group mt-2.5 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-clay transition hover:text-clay-dark"
                     >
                       Abrir no mapa
                       <ArrowUpRight
@@ -69,14 +69,14 @@ export function Visit() {
                 <div className="grid gap-4 border-b border-line py-6 sm:grid-cols-[140px_1fr] sm:gap-8">
                   <div className="flex items-center gap-2.5 text-forest">
                     <Clock size={17} strokeWidth={1.6} aria-hidden="true" />
-                    <h3 className="text-[11px] font-semibold uppercase tracking-[0.16em]">
+                    <h3 className="text-xs font-semibold uppercase tracking-[0.16em]">
                       Horários
                     </h3>
                   </div>
                   <div>
                     <p className="text-[14px] leading-relaxed text-ink/80">{visit.weekdays}</p>
                     <p className="mt-1 text-[14px] leading-relaxed text-ink/80">{visit.weekends}</p>
-                    <p className="mt-3 border-l border-copper/60 pl-3 text-[11px] leading-relaxed text-stone">
+                    <p className="mt-3 border-l border-copper/60 pl-3 text-xs leading-relaxed text-stone">
                       {visit.hoursNote}
                     </p>
                   </div>
@@ -85,7 +85,7 @@ export function Visit() {
                 <div className="grid gap-4 border-b border-line py-6 sm:grid-cols-[140px_1fr] sm:gap-8">
                   <div className="flex items-center gap-2.5 text-forest">
                     <Users size={17} strokeWidth={1.6} aria-hidden="true" />
-                    <h3 className="text-[11px] font-semibold uppercase tracking-[0.16em]">
+                    <h3 className="text-xs font-semibold uppercase tracking-[0.16em]">
                       Visitas em grupo
                     </h3>
                   </div>
@@ -96,7 +96,7 @@ export function Visit() {
                         'Solicitação de visita em grupo — Museu Municipal Hilmar Harry Kluck',
                         'Olá, gostaria de solicitar uma visita em grupo ao Museu Municipal Hilmar Harry Kluck. Instituição: \nQuantidade de pessoas: \nData desejada: \nResponsável: ',
                       )}
-                      className="group mt-2.5 inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-clay transition hover:text-clay-dark"
+                      className="group mt-2.5 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-clay transition hover:text-clay-dark"
                     >
                       Enviar solicitação
                       <ArrowUpRight
@@ -112,7 +112,7 @@ export function Visit() {
                 <div className="grid gap-4 border-b border-line py-6 sm:grid-cols-[140px_1fr] sm:gap-8">
                   <div className="flex items-center gap-2.5 text-forest">
                     <Mail size={17} strokeWidth={1.6} aria-hidden="true" />
-                    <h3 className="text-[11px] font-semibold uppercase tracking-[0.16em]">
+                    <h3 className="text-xs font-semibold uppercase tracking-[0.16em]">
                       Contatos
                     </h3>
                   </div>
@@ -133,7 +133,7 @@ export function Visit() {
                 <div className="grid gap-4 py-6 sm:grid-cols-[140px_1fr] sm:gap-8">
                   <div className="flex items-center gap-2.5 text-forest">
                     <Accessibility size={17} strokeWidth={1.6} aria-hidden="true" />
-                    <h3 className="text-[11px] font-semibold uppercase tracking-[0.16em]">
+                    <h3 className="text-xs font-semibold uppercase tracking-[0.16em]">
                       Acessibilidade
                     </h3>
                   </div>
@@ -146,7 +146,7 @@ export function Visit() {
             </Reveal>
 
             <Reveal delay={100}>
-              <p className="mt-6 text-[11px] leading-relaxed text-stone">
+              <p className="mt-6 text-xs leading-relaxed text-stone">
                 Informações de visitação baseadas em publicação oficial de 2023. Podem sofrer
                 alterações. Consulte também a{' '}
                 <a
@@ -165,7 +165,7 @@ export function Visit() {
           <div className="lg:col-span-6">
             <Reveal delay={120}>
               <figure>
-                <div className="img-zoom relative overflow-hidden bg-sand-deep">
+                <div className="img-zoom relative overflow-hidden rounded-[36px] bg-sand-deep">
                   <img
                     src="/images/museu/museu-02.jpg"
                     alt="Fachada da sede administrativa do Museu de Parauapebas Hilmar Harry Kluck, com placa institucional."
@@ -177,7 +177,7 @@ export function Visit() {
                   />
                   <div
                     aria-hidden="true"
-                    className="absolute inset-0 bg-gradient-to-t from-forest-deep/80 via-transparent to-transparent"
+                    className="absolute inset-0 bg-gradient-to-t from-forest-deep/90 via-forest-deep/30 to-transparent"
                   />
                   <figcaption className="absolute inset-x-0 bottom-0 p-6 text-parchment sm:p-7">
                     <p className="eyebrow text-copper-light">Como chegar</p>
@@ -188,7 +188,7 @@ export function Visit() {
                       href={visit.mapUrl}
                       target="_blank"
                       rel="noreferrer noopener"
-                      className="group mt-4 inline-flex items-center gap-2 border border-parchment/35 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-parchment transition hover:bg-parchment hover:text-forest-deep"
+                      className="group mt-4 inline-flex items-center gap-2 rounded-full bg-parchment px-6 py-2.5 text-[12px] font-medium tracking-[0.06em] text-forest-deep transition hover:bg-cream"
                     >
                       Abrir no Google Maps
                       <ArrowUpRight
@@ -200,7 +200,7 @@ export function Visit() {
                     </a>
                   </figcaption>
                 </div>
-                <p className="mt-3 text-[11px] leading-relaxed text-stone">
+                <p className="mt-3 text-xs leading-relaxed text-stone">
                   Fotografia: {photoCredit} (2023). Confirme horários e disponibilidade antes da
                   visita.
                 </p>

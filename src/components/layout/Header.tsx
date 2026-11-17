@@ -216,16 +216,13 @@ export function Header() {
 
           <nav aria-label="Navegação mobile" className="flex-1 overflow-y-auto px-5 pb-8 pt-2 sm:px-8">
             <ul>
-              {navItems.map((item, index) => (
+              {navItems.map((item) => (
                 <li key={item.id}>
                   <a
                     href={item.href}
                     onClick={() => setMenuOpen(false)}
                     className="group flex items-baseline gap-4 border-b border-parchment/10 py-4"
                   >
-                    <span className="w-6 text-[11px] font-medium tabular-nums tracking-wider text-parchment/70">
-                      {String(index + 1).padStart(2, '0')}
-                    </span>
                     <span className="display text-[clamp(1.5rem,6vw,1.9rem)] font-medium leading-tight text-parchment transition-colors group-hover:text-copper-light">
                       {item.label}
                     </span>

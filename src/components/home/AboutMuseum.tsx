@@ -1,5 +1,7 @@
+import { useLayoutEffect, useRef } from 'react'
 import { ArrowDownRight, ExternalLink } from 'lucide-react'
 import { hilmarBio, photoCredit, sourceUrl } from '../../data/content'
+import { gsap } from '../../lib/gsap'
 import { ButtonLink } from '../ui/Button'
 import { Reveal } from '../ui/Reveal'
 
@@ -10,8 +12,95 @@ const milestones = [
 ]
 
 export function AboutMuseum() {
+  const sectionRef = useRef<HTMLElement>(null)
+
+  useLayoutEffect(() => {
+    const ctx = gsap.context(() => {
+      const mm = gsap.matchMedia()
+
+      mm.add('(prefers-reduced-motion: reduce)', () => {
+        gsap.set(
+          ['.about-photo-reveal', '.about-inset-card', '.about-quote-bg', '.about-quote-line'],
+          { clearProps: 'all', opacity: 1, y: 0, clipPath: 'none' },
+        )
+      })
+
+      mm.add('(prefers-reduced-motion: no-preference)', () => {
+        gsap.fromTo(
+          '.about-photo-reveal',
+          { clipPath: 'inset(12% 8% 12% 8% round 36px)' },
+          {
+            clipPath: 'inset(0% 0% 0% 0% round 36px)',
+            ease: 'none',
+            scrollTrigger: {
+              trigger: '.about-photo-reveal',
+              start: 'top 90%',
+              end: 'top 35%',
+              scrub: 0.6,
+            },
+          },
+        )
+
+        gsap.fromTo(
+          '.about-inset-card',
+          { y: 28 },
+          {
+            y: -18,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: '.about-photo-reveal',
+              start: 'top bottom',
+              end: 'bottom top',
+              scrub: true,
+            },
+          },
+        )
+
+        gsap.fromTo(
+          '.about-quote-bg',
+          { scale: 1.12, opacity: 0.08 },
+          {
+            scale: 1.0,
+            opacity: 0.22,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: '.about-quote-band',
+              start: 'top bottom',
+              end: 'bottom top',
+              scrub: true,
+            },
+          },
+        )
+
+        gsap.fromTo(
+          '.about-quote-line',
+          { opacity: 0.25, y: 20 },
+          {
+            opacity: 1,
+            y: 0,
+            stagger: 0.12,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: '.about-quote-band',
+              start: 'top 80%',
+              end: 'center 52%',
+              scrub: 0.5,
+            },
+          },
+        )
+      })
+    }, sectionRef)
+
+    return () => ctx.revert()
+  }, [])
+
   return (
-    <section id="museu" aria-labelledby="museu-title" className="relative bg-parchment">
+    <section
+      ref={sectionRef}
+      id="museu"
+      aria-labelledby="museu-title"
+      className="relative bg-parchment"
+    >
       {/* 1. Divisão assimétrica: bloco sage que "desce" sobre a faixa escura + retrato arredondado */}
       <div className="site-container relative z-10">
         <div className="grid lg:grid-cols-12 lg:gap-12 xl:gap-16">
@@ -72,42 +161,40 @@ export function AboutMuseum() {
           </div>
 
           <div className="py-12 lg:col-span-7 lg:pb-28 lg:pt-14">
-            <Reveal>
-              <div className="relative">
-                <figure className="overflow-hidden rounded-[36px] bg-sand-deep shadow-sm">
-                  <img
-                    src="/images/museu/museu-02.jpg"
-                    alt="Placa do Museu de Parauapebas Hilmar Harry Kluck na fachada da sede administrativa, com pintura de folhas ao fundo."
-                    width={1280}
-                    height={720}
-                    loading="lazy"
-                    decoding="async"
-                    className="aspect-[4/5] w-full object-cover object-center sm:aspect-[5/6]"
-                  />
-                </figure>
+            <div className="relative">
+              <figure className="about-photo-reveal overflow-hidden rounded-[36px] bg-sand-deep shadow-sm will-change-[clip-path]">
+                <img
+                  src="/images/museu/museu-02.jpg"
+                  alt="Placa do Museu de Parauapebas Hilmar Harry Kluck na fachada da sede administrativa, com pintura de folhas ao fundo."
+                  width={1280}
+                  height={720}
+                  loading="lazy"
+                  decoding="async"
+                  className="aspect-[4/5] w-full object-cover object-center sm:aspect-[5/6]"
+                />
+              </figure>
 
-                <figure className="relative -mt-16 ml-auto w-[62%] overflow-hidden rounded-2xl bg-cream shadow-sm sm:-mt-24 sm:w-[52%] lg:-mb-8 lg:-ml-6 lg:mr-auto lg:w-[48%]">
-                  <img
-                    src="/images/museu/museu-03.jpg"
-                    alt="Fotografia histórica de moradores de Parauapebas em uma caminhonete durante o plebiscito, com cartaz em apoio ao município."
-                    width={1280}
-                    height={720}
-                    loading="lazy"
-                    decoding="async"
-                    className="aspect-[4/3] w-full object-cover"
-                  />
-                  <figcaption className="px-4 py-3 text-xs leading-snug text-stone">
-                    Memória da formação de Parauapebas. {photoCredit} (2023).
-                  </figcaption>
-                </figure>
-              </div>
-            </Reveal>
+              <figure className="about-inset-card relative -mt-16 ml-auto w-[62%] overflow-hidden rounded-2xl bg-cream shadow-sm will-change-transform sm:-mt-24 sm:w-[52%] lg:-mb-8 lg:-ml-6 lg:mr-auto lg:w-[48%]">
+                <img
+                  src="/images/museu/museu-03.jpg"
+                  alt="Fotografia histórica de moradores de Parauapebas em uma caminhonete durante o plebiscito, com cartaz em apoio ao município."
+                  width={1280}
+                  height={720}
+                  loading="lazy"
+                  decoding="async"
+                  className="aspect-[4/3] w-full object-cover"
+                />
+                <figcaption className="px-4 py-3 text-xs leading-snug text-stone">
+                  Memória da formação de Parauapebas. {photoCredit} (2023).
+                </figcaption>
+              </figure>
+            </div>
           </div>
         </div>
       </div>
 
       {/* 2. Faixa de declaração em floresta enevoada */}
-      <div className="relative z-0 isolate overflow-hidden bg-forest-deep pb-24 pt-28 text-parchment lg:pt-44">
+      <div className="about-quote-band relative z-0 isolate overflow-hidden bg-forest-deep pb-24 pt-28 text-parchment lg:pt-44">
         <img
           src="/images/museu/museu-01.jpg"
           alt=""
@@ -116,7 +203,7 @@ export function AboutMuseum() {
           height={720}
           loading="lazy"
           decoding="async"
-          className="absolute inset-0 -z-20 h-full w-full object-cover opacity-20"
+          className="about-quote-bg absolute inset-0 -z-20 h-full w-full object-cover opacity-20 will-change-transform"
         />
         <div
           aria-hidden="true"
@@ -124,19 +211,19 @@ export function AboutMuseum() {
         />
 
         <div className="site-container">
-          <Reveal>
-            <blockquote className="mx-auto max-w-3xl text-center">
-              <p className="display text-[clamp(1.55rem,3.2vw,2.5rem)] font-light leading-[1.3] text-parchment/90">
-                “O acervo do museu é composto por peças da{' '}
-                <strong className="font-semibold text-parchment">cultura Xikrin</strong>, mas também
-                temos <strong className="font-semibold text-parchment">itens arqueológicos</strong>{' '}
-                de povos que habitaram a{' '}
-                <strong className="font-semibold text-parchment">região de Carajás</strong> bem antes
-                da comunidade Xikrin.”
-              </p>
-              <footer className="mt-7 text-xs font-medium uppercase tracking-[0.18em] text-parchment/80">
-                Rogério Andrade · Arqueólogo do museu
-              </footer>
+          <blockquote className="mx-auto max-w-3xl text-center">
+            <p className="about-quote-line display text-[clamp(1.55rem,3.2vw,2.5rem)] font-light leading-[1.3] text-parchment/90">
+              “O acervo do museu é composto por peças da{' '}
+              <strong className="font-semibold text-parchment">cultura Xikrin</strong>, mas também
+              temos <strong className="font-semibold text-parchment">itens arqueológicos</strong> de
+              povos que habitaram a{' '}
+              <strong className="font-semibold text-parchment">região de Carajás</strong> bem antes
+              da comunidade Xikrin.”
+            </p>
+            <footer className="about-quote-line mt-7 text-xs font-medium uppercase tracking-[0.18em] text-parchment/80">
+              Rogério Andrade · Arqueólogo do museu
+            </footer>
+            <div className="about-quote-line">
               <a
                 href={sourceUrl}
                 target="_blank"
@@ -152,8 +239,8 @@ export function AboutMuseum() {
                 />
                 <span className="sr-only"> (abre em nova aba)</span>
               </a>
-            </blockquote>
-          </Reveal>
+            </div>
+          </blockquote>
         </div>
       </div>
 

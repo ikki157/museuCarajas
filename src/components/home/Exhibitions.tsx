@@ -37,7 +37,10 @@ export function Exhibitions() {
               <img
                 src="/images/museu/museu-05.jpg"
                 alt="Painel de abertura da exposição Parauapebas: Conhecer para Preservar, no interior do museu."
+                width={1280}
+                height={720}
                 loading="lazy"
+                decoding="async"
                 className="h-full min-h-[380px] w-full object-cover object-[42%_center] sm:min-h-[480px] lg:min-h-[560px]"
               />
               <div
@@ -45,10 +48,10 @@ export function Exhibitions() {
                 className="absolute inset-0 bg-gradient-to-t from-forest-deep/60 via-transparent to-transparent"
               />
               <figcaption className="absolute inset-x-0 bottom-0 p-6 text-parchment sm:p-8">
-                <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-copper-light">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-copper-light">
                   Painel expositivo
                 </p>
-                <p className="mt-2 max-w-md text-[11.5px] leading-relaxed text-parchment/65">
+                <p className="mt-2 max-w-md text-[12px] leading-relaxed text-parchment/80">
                   Prefeitura de Parauapebas / Assessoria de Comunicação (2023)
                 </p>
               </figcaption>
@@ -80,7 +83,7 @@ export function Exhibitions() {
             <Reveal delay={160}>
               <a
                 href="#visite"
-                className="group mt-8 inline-flex items-center gap-2 text-[10.5px] font-semibold uppercase tracking-[0.16em] text-forest transition hover:text-clay lg:mt-10"
+                className="group mt-8 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-forest transition hover:text-clay lg:mt-10"
               >
                 Planeje sua visita
                 <ArrowRight
@@ -101,7 +104,7 @@ export function Exhibitions() {
                 <div className="flex h-12 w-12 items-center justify-center rounded-full border border-forest/25 text-forest">
                   <Archive size={20} strokeWidth={1.5} aria-hidden="true" />
                 </div>
-                <span className="text-[10px] font-medium tabular-nums tracking-[0.2em] text-stone/50">
+                <span className="text-[11px] font-medium tabular-nums tracking-[0.2em] text-stone">
                   01
                 </span>
               </div>
@@ -120,7 +123,7 @@ export function Exhibitions() {
                   'Fotografias e documentos originais ou cópias',
                   'Registros audiovisuais, sonoros, cartográficos e textuais',
                 ].map((item) => (
-                  <li key={item} className="flex items-start gap-3 text-[13px] leading-relaxed text-ink/65">
+                  <li key={item} className="flex items-start gap-3 text-[13px] leading-relaxed text-ink/75">
                     <span
                       aria-hidden="true"
                       className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-copper"
@@ -130,14 +133,14 @@ export function Exhibitions() {
                 ))}
               </ul>
 
-              <p className="mt-6 border-l border-clay/40 pl-4 text-[10.5px] leading-relaxed text-stone/75">
+              <p className="mt-6 border-l border-clay/40 pl-4 text-[11px] leading-relaxed text-stone">
                 A legislação federal não permite a comercialização de bens arqueológicos. O museu
                 recebe doações voluntárias.
               </p>
 
               <a
                 href="#contribua"
-                className="group mt-7 inline-flex items-center gap-2 text-[10.5px] font-semibold uppercase tracking-[0.16em] text-clay transition hover:text-clay-dark"
+                className="group mt-7 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-clay transition hover:text-clay-dark"
               >
                 Contribuir com o acervo
                 <ArrowRight
@@ -156,12 +159,12 @@ export function Exhibitions() {
                 <div className="flex h-12 w-12 items-center justify-center rounded-full border border-forest/25 text-forest">
                   <GraduationCap size={21} strokeWidth={1.5} aria-hidden="true" />
                 </div>
-                <span className="text-[10px] font-medium tabular-nums tracking-[0.2em] text-stone/50">
+                <span className="text-[11px] font-medium tabular-nums tracking-[0.2em] text-stone">
                   02
                 </span>
               </div>
               <h3 className="display mt-6 text-[clamp(1.9rem,3.4vw,2.7rem)] font-medium leading-none text-forest">
-                Conhecer para Preservar
+                Projeto Conhecer para Preservar
               </h3>
               <p className="mt-4 text-[14.5px] leading-relaxed text-stone">
                 Voltado principalmente à comunidade escolar, o projeto promove palestras e
@@ -179,14 +182,14 @@ export function Exhibitions() {
                     'Solicitação de visita escolar — Museu Municipal Hilmar Harry Kluck',
                     'Olá, gostaria de solicitar uma visita escolar ao Museu Municipal Hilmar Harry Kluck. Instituição: \nTurma/quantidade de estudantes: \nData desejada: \nResponsável: ',
                   )}
-                  className="group inline-flex items-center gap-2 border border-forest/25 px-4 py-3 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-forest transition hover:bg-forest hover:text-parchment"
+                  className="group inline-flex items-center gap-2 border border-forest/25 px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-forest transition hover:bg-forest hover:text-parchment"
                 >
                   <Mail size={14} strokeWidth={1.7} aria-hidden="true" />
                   Agendar visita escolar
                 </a>
                 <a
                   href="#educacao"
-                  className="group inline-flex items-center gap-2 px-1 py-3 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-stone transition hover:text-clay"
+                  className="group inline-flex items-center gap-2 px-1 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-stone transition hover:text-clay"
                 >
                   Ver ações educativas
                   <ArrowRight

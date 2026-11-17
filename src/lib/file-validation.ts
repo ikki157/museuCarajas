@@ -71,8 +71,7 @@ function detectFormat(bytes: Uint8Array): ValidatedFileFormat | null {
   return null
 }
 
-function containsAscii(bytes: Uint8Array, value: string): boolean {
-  const target = value.split('').map((character) => character.charCodeAt(0))
+function containsBytes(bytes: Uint8Array, target: readonly number[]): boolean {
   if (target.length === 0 || bytes.length < target.length) return false
 
   for (let index = 0; index <= bytes.length - target.length; index += 1) {
@@ -87,6 +86,36 @@ function containsAscii(bytes: Uint8Array, value: string): boolean {
   }
 
   return false
+}
+
+function containsAscii(bytes: Uint8Array, value: string): boolean {
+  const target = value.split('').map((character) => character.charCodeAt(0))
+  return containsBytes(bytes, target)
+}
+
+async function hasValidImageEnding(
+  file: File,
+  format: Exclude<ValidatedFileFormat, 'pdf'>,
+  header: Uint8Array,
+): Promise<boolean> {
+  if (format === 'webp') {
+    if (file.size < 20 || header.length < 16) return false
+    if (ascii(header, 0, 4) !== 'RIFF' || ascii(header, 8, 4) !== 'WEBP') return false
+    const chunkType = ascii(header, 12, 4)
+    if (chunkType !== 'VP8 ' && chunkType !== 'VP8L' && chunkType !== 'VP8X') return false
+    const riffSize =
+      (header[4] | (header[5] << 8) | (header[6] << 16) | (header[7] << 24)) >>> 0
+    return riffSize === 0 || riffSize + 8 <= file.size
+  }
+
+  const tail = new Uint8Array(await file.slice(Math.max(0, file.size - 4096)).arrayBuffer())
+
+  if (format === 'jpg') {
+    return file.size >= 4 && containsBytes(tail, [0xff, 0xd9])
+  }
+
+  if (file.size < 20) return false
+  return containsBytes(tail, [0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82])
 }
 
 async function canDecodeImage(file: File): Promise<boolean> {
@@ -209,7 +238,8 @@ export async function validateContributionFile(file: File): Promise<FileValidati
   }
 
   if (category === 'fotografia') {
-    const decodable = await canDecodeImage(file)
+    const validEnding = await hasValidImageEnding(file, format as Exclude<ValidatedFileFormat, 'pdf'>, header)
+    const decodable = validEnding && (await canDecodeImage(file))
     if (!decodable) {
       return {
         ok: false,

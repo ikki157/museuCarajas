@@ -9,7 +9,6 @@ type UseGaleriaResult = {
   loading: boolean
   error: string | null
   status: GaleriaStatus
-  lastUpdated: Date | null
   refresh: () => void
 }
 
@@ -23,13 +22,18 @@ export function useGaleria(): UseGaleriaResult {
   const [status, setStatus] = useState<GaleriaStatus>(
     supabase ? 'connecting' : 'unconfigured',
   )
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+  const statusRef = useRef<GaleriaStatus>(supabase ? 'connecting' : 'unconfigured')
   const mountedRef = useRef(true)
+
+  const updateStatus = useCallback((nextStatus: GaleriaStatus) => {
+    statusRef.current = nextStatus
+    setStatus(nextStatus)
+  }, [])
 
   const load = useCallback(async (showLoading = false) => {
     if (!supabase) {
       setLoading(false)
-      setStatus('unconfigured')
+      updateStatus('unconfigured')
       return
     }
 
@@ -41,6 +45,7 @@ export function useGaleria(): UseGaleriaResult {
         .select(GALERIA_FIELDS)
         .eq('publicado', true)
         .order('criado_em', { ascending: false })
+        .limit(60)
 
       if (queryError) throw queryError
       if (!mountedRef.current) return
@@ -48,7 +53,6 @@ export function useGaleria(): UseGaleriaResult {
       const rows = (data ?? []) as Array<Record<string, unknown>>
       setItems(rows.map(mapGaleriaRow))
       setError(null)
-      setLastUpdated(new Date())
     } catch (caughtError) {
       if (!mountedRef.current) return
       if (import.meta.env.DEV) {
@@ -68,7 +72,7 @@ export function useGaleria(): UseGaleriaResult {
     const client = supabase
     if (!client) {
       setLoading(false)
-      setStatus('unconfigured')
+      updateStatus('unconfigured')
       return
     }
 
@@ -95,30 +99,34 @@ export function useGaleria(): UseGaleriaResult {
         if (!active) return
 
         if (channelStatus === 'SUBSCRIBED') {
-          setStatus('live')
+          updateStatus('live')
         } else if (channelStatus === 'CHANNEL_ERROR' || channelStatus === 'TIMED_OUT') {
-          setStatus('offline')
+          updateStatus('offline')
         } else if (channelStatus === 'CLOSED') {
-          setStatus('offline')
+          updateStatus('offline')
         }
       })
 
     const handleOnline = () => {
       if (!active) return
-      setStatus('connecting')
+      updateStatus('connecting')
       void load(false)
     }
 
     const handleOffline = () => {
-      if (active) setStatus('offline')
+      if (active) updateStatus('offline')
     }
 
     const handleVisibilityChange = () => {
-      if (active && document.visibilityState === 'visible') void load(false)
+      if (active && document.visibilityState === 'visible' && statusRef.current !== 'live') {
+        void load(false)
+      }
     }
 
     const refreshInterval = window.setInterval(() => {
-      if (active && document.visibilityState === 'visible') void load(false)
+      if (active && document.visibilityState === 'visible' && statusRef.current !== 'live') {
+        void load(false)
+      }
     }, 60_000)
 
     window.addEventListener('online', handleOnline)
@@ -135,11 +143,11 @@ export function useGaleria(): UseGaleriaResult {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       void client.removeChannel(channel)
     }
-  }, [load])
+  }, [load, updateStatus])
 
   const refresh = useCallback(() => {
     void load(true)
   }, [load])
 
-  return { items, loading, error, status, lastUpdated, refresh }
+  return { items, loading, error, status, refresh }
 }

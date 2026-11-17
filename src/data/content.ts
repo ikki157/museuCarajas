@@ -22,7 +22,16 @@ export const navItems = [
   { id: 'visite', label: 'Visite-nos', href: '#visite' },
 ] as const
 
-export const sectionIds = navItems.map((item) => item.id)
+export const sectionIds = [
+  'inicio',
+  'museu',
+  'acervo',
+  'exposicoes',
+  'galeria',
+  'educacao',
+  'contribua',
+  'visite',
+] as const
 
 export const visit = {
   addressLine1: 'Rua E, bairro Cidade Nova',

@@ -37,13 +37,13 @@ export function Logo({ tone = 'dark', className, compact = false }: LogoProps) {
     >
       <LogoMark className={compact ? 'h-9 w-9' : 'h-11 w-11'} />
       <span className="flex flex-col">
-        <span className="text-[8.5px] font-semibold uppercase tracking-[0.28em] opacity-65">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.22em] opacity-80">
           Museu Municipal
         </span>
         <span className="display mt-0.5 text-[18px] font-semibold leading-none tracking-[-0.01em] sm:text-[19px]">
           Hilmar Harry Kluck
         </span>
-        <span className="mt-1 text-[8px] font-medium uppercase tracking-[0.24em] opacity-55">
+        <span className="mt-1 text-[11px] font-medium uppercase tracking-[0.2em] opacity-75">
           Parauapebas · Pará
         </span>
       </span>

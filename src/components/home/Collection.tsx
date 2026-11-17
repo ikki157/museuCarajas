@@ -5,10 +5,29 @@ import { cn } from '../../lib/utils'
 import { Reveal } from '../ui/Reveal'
 import { SectionHeading } from '../ui/SectionHeading'
 
+function getInitialCollectionId(): string {
+  if (typeof window === 'undefined') return collectionCategories[0].id
+  const param = new URLSearchParams(window.location.search).get('acervo')?.trim()
+  if (param && collectionCategories.some((category) => category.id === param)) {
+    return param
+  }
+  return collectionCategories[0].id
+}
+
 export function Collection() {
-  const [activeId, setActiveId] = useState(collectionCategories[0].id)
+  const [activeId, setActiveId] = useState(getInitialCollectionId)
   const active =
     collectionCategories.find((category) => category.id === activeId) ?? collectionCategories[0]
+
+  const selectCategory = (categoryId: string) => {
+    setActiveId(categoryId)
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href)
+      url.searchParams.set('acervo', categoryId)
+      if (!url.hash) url.hash = '#acervo'
+      window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`)
+    }
+  }
 
   const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
     const lastIndex = collectionCategories.length - 1
@@ -28,7 +47,7 @@ export function Collection() {
 
     event.preventDefault()
     const nextCategory = collectionCategories[nextIndex]
-    setActiveId(nextCategory.id)
+    selectCategory(nextCategory.id)
     window.requestAnimationFrame(() => {
       document.getElementById(`tab-${nextCategory.id}`)?.focus()
     })
@@ -59,14 +78,14 @@ export function Collection() {
           </div>
           <div className="lg:col-span-5 lg:pb-2">
             <Reveal delay={80}>
-              <p className="max-w-md text-[14.5px] leading-relaxed text-parchment/58">
+              <p className="max-w-md text-[14.5px] leading-relaxed text-parchment/75">
                 Uma coleção formada principalmente por doações e por vestígios que conectam o
                 presente de Parauapebas a milhares de anos de história. Percorra as categorias que
                 organizam esse patrimônio.
               </p>
               <a
                 href="#galeria"
-                className="group mt-6 inline-flex items-center gap-2 text-[10.5px] font-semibold uppercase tracking-[0.16em] text-copper-light transition hover:text-parchment"
+                className="group mt-6 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-copper-light transition hover:text-parchment"
               >
                 Ver galeria de fotografias
                 <ArrowRight
@@ -101,19 +120,19 @@ export function Collection() {
                       aria-selected={isActive}
                       aria-controls={`panel-${category.id}`}
                       tabIndex={isActive ? 0 : -1}
-                      onClick={() => setActiveId(category.id)}
+                      onClick={() => selectCategory(category.id)}
                       onKeyDown={(event) => handleTabKeyDown(event, index)}
                       className={cn(
                         'group flex w-full items-center gap-4 border-b border-parchment/15 py-4 text-left transition-colors duration-300 sm:gap-5 sm:py-5',
                         isActive
                           ? 'text-parchment'
-                          : 'text-parchment/48 hover:text-parchment/80',
+                          : 'text-parchment/70 hover:text-parchment',
                       )}
                     >
                       <span
                         className={cn(
-                          'text-[9.5px] font-medium tabular-nums tracking-[0.18em] transition-colors',
-                          isActive ? 'text-copper-light' : 'text-parchment/25',
+                          'text-[11px] font-medium tabular-nums tracking-[0.18em] transition-colors',
+                          isActive ? 'text-copper-light' : 'text-parchment/70',
                         )}
                       >
                         {String(index + 1).padStart(2, '0')}
@@ -133,7 +152,7 @@ export function Collection() {
                           'shrink-0 transition-all duration-300',
                           isActive
                             ? 'translate-x-0.5 -translate-y-0.5 text-copper-light'
-                            : 'text-parchment/20 group-hover:text-parchment/50',
+                            : 'text-parchment/60 group-hover:text-parchment',
                         )}
                         aria-hidden="true"
                       />
@@ -142,7 +161,7 @@ export function Collection() {
                 })}
               </div>
 
-              <p className="mt-5 max-w-sm text-[10px] leading-relaxed text-parchment/28">
+              <p className="mt-5 max-w-sm text-[11px] leading-relaxed text-parchment/70">
                 Categorias e legendas demonstrativas. A classificação curatorial definitiva é de
                 responsabilidade do museu.
               </p>
@@ -169,7 +188,10 @@ export function Collection() {
                         <img
                           src={category.image}
                           alt={category.alt}
+                          width={1280}
+                          height={720}
                           loading="lazy"
+                          decoding="async"
                           className="aspect-[4/3] w-full object-cover"
                           style={{ objectPosition: category.focus ?? 'center' }}
                         />
@@ -177,7 +199,7 @@ export function Collection() {
                           aria-hidden="true"
                           className="absolute inset-0 bg-gradient-to-t from-forest-deep/45 via-transparent to-transparent"
                         />
-                        <p className="absolute left-4 top-4 border border-parchment/25 bg-forest-deep/55 px-3 py-1.5 text-[8.5px] font-semibold uppercase tracking-[0.18em] text-parchment/80 backdrop-blur-sm">
+                        <p className="absolute left-4 top-4 border border-parchment/25 bg-forest-deep/75 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-parchment/90 backdrop-blur-sm">
                           Acervo · {String(index + 1).padStart(2, '0')}
                         </p>
                       </div>
@@ -189,16 +211,16 @@ export function Collection() {
                             <h3 className="display mt-3 text-[clamp(1.6rem,3.2vw,2.35rem)] font-medium leading-[1.08] text-parchment">
                               {category.title}
                             </h3>
-                            <p className="mt-4 max-w-xl text-[14px] leading-relaxed text-parchment/58">
+                            <p className="mt-4 max-w-xl text-[14px] leading-relaxed text-parchment/75">
                               {category.description}
                             </p>
                           </div>
-                          <span className="hidden shrink-0 pt-1 text-[10px] tabular-nums tracking-[0.16em] text-parchment/30 sm:block">
+                          <span className="hidden shrink-0 pt-1 text-[11px] tabular-nums tracking-[0.16em] text-parchment/70 sm:block">
                             {String(index + 1).padStart(2, '0')} /{' '}
                             {String(collectionCategories.length).padStart(2, '0')}
                           </span>
                         </div>
-                        <p className="mt-5 text-[9.5px] leading-relaxed text-parchment/28">
+                        <p className="mt-5 text-[11px] leading-relaxed text-parchment/70">
                           Fotografia do acervo expositivo · {photoCredit} (2023)
                         </p>
                       </figcaption>

@@ -14,11 +14,6 @@ export type GaleriaItem = {
   atualizado_em: string
 }
 
-export type GaleriaRow = Omit<GaleriaItem, 'arquivo_url'> & {
-  arquivo_url?: string | null
-  [key: string]: unknown
-}
-
 const GALERIA_BUCKET = 'galeria'
 
 export function mapGaleriaRow(row: Record<string, unknown>): GaleriaItem {

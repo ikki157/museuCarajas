@@ -59,7 +59,7 @@ export function Contribute() {
             <Reveal delay={200}>
               <div className="mt-8 grid gap-5 border-y border-ink/15 py-5 sm:grid-cols-2">
                 <div>
-                  <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-clay">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-clay">
                     Fotografias
                   </p>
                   <p className="mt-1.5 text-[12.5px] leading-relaxed text-stone">
@@ -69,7 +69,7 @@ export function Contribute() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-clay">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-clay">
                     Documentos
                   </p>
                   <p className="mt-1.5 text-[12.5px] leading-relaxed text-stone">
@@ -82,7 +82,7 @@ export function Contribute() {
             </Reveal>
 
             <Reveal delay={260}>
-              <div className="mt-6 space-y-3 text-[11px] leading-relaxed text-stone/75">
+              <div className="mt-6 space-y-3 text-[11px] leading-relaxed text-stone">
                 <p>
                   Os dados enviados serão utilizados pela equipe do museu apenas para análise e
                   contato sobre esta contribuição.
@@ -107,7 +107,7 @@ export function Contribute() {
                 href={sourceUrl}
                 target="_blank"
                 rel="noreferrer noopener"
-                className="group mt-7 inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-clay transition hover:text-clay-dark"
+                className="group mt-7 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-clay transition hover:text-clay-dark"
               >
                 Sobre o projeto Salvaguarda
                 <ArrowUpRight

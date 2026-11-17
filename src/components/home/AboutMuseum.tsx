@@ -28,7 +28,10 @@ export function AboutMuseum() {
                   <img
                     src="/images/museu/museu-02.jpg"
                     alt="Placa do Museu de Parauapebas Hilmar Harry Kluck na fachada da sede administrativa, com pintura de folhas ao fundo."
+                    width={1280}
+                    height={720}
                     loading="lazy"
+                    decoding="async"
                     className="aspect-[4/3] w-full object-cover object-center sm:aspect-[5/4]"
                   />
                 </figure>
@@ -37,15 +40,18 @@ export function AboutMuseum() {
                   <img
                     src="/images/museu/museu-03.jpg"
                     alt="Fotografia histórica de moradores de Parauapebas em uma caminhonete durante o plebiscito, com cartaz em apoio ao município."
+                    width={1280}
+                    height={720}
                     loading="lazy"
+                    decoding="async"
                     className="aspect-[4/3] w-full object-cover"
                   />
-                  <figcaption className="bg-parchment px-3 py-2.5 text-[9.5px] leading-snug text-stone">
+                  <figcaption className="bg-parchment px-3 py-2.5 text-[11px] leading-snug text-stone">
                     Memória da formação de Parauapebas. {photoCredit} (2023).
                   </figcaption>
                 </figure>
 
-                <p className="absolute -left-1 top-[58%] hidden origin-bottom-left -rotate-90 text-[9px] font-semibold uppercase tracking-[0.32em] text-stone/55 sm:block">
+                <p className="absolute -left-1 top-[58%] hidden origin-bottom-left -rotate-90 text-[11px] font-semibold uppercase tracking-[0.28em] text-stone sm:block">
                   Desde 2011
                 </p>
               </div>
@@ -96,19 +102,19 @@ export function AboutMuseum() {
                   <p className="display text-[clamp(1.9rem,3.4vw,2.8rem)] font-medium leading-none text-clay">
                     2011
                   </p>
-                  <p className="mt-2 text-[10.5px] leading-snug text-stone">Criação por lei municipal</p>
+                  <p className="mt-2 text-[11px] leading-snug text-stone">Criação por lei municipal</p>
                 </div>
                 <div className="px-3 py-5 sm:px-5">
                   <p className="display text-[clamp(1.9rem,3.4vw,2.8rem)] font-medium leading-none text-clay">
                     2020
                   </p>
-                  <p className="mt-2 text-[10.5px] leading-snug text-stone">Abertura ao público</p>
+                  <p className="mt-2 text-[11px] leading-snug text-stone">Abertura ao público</p>
                 </div>
                 <div className="py-5 pl-3 sm:pl-5">
                   <p className="display text-[clamp(1.9rem,3.4vw,2.8rem)] font-medium leading-none text-clay">
                     +11 mil
                   </p>
-                  <p className="mt-2 text-[10.5px] leading-snug text-stone">
+                  <p className="mt-2 text-[11px] leading-snug text-stone">
                     Anos de datação na Serra dos Carajás*
                   </p>
                 </div>
@@ -117,14 +123,14 @@ export function AboutMuseum() {
 
             <Reveal delay={260}>
               <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-[10.5px] leading-relaxed text-stone/70">
+                <p className="text-[11px] leading-relaxed text-stone">
                   *Datação citada pelo arqueólogo do museu em publicação oficial de 2023.
                 </p>
                 <a
                   href={sourceUrl}
                   target="_blank"
                   rel="noreferrer noopener"
-                  className="group inline-flex shrink-0 items-center gap-2 text-[10.5px] font-semibold uppercase tracking-[0.13em] text-clay transition hover:text-clay-dark"
+                  className="group inline-flex shrink-0 items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.13em] text-clay transition hover:text-clay-dark"
                 >
                   Fonte oficial
                   <ExternalLink
@@ -164,19 +170,19 @@ export function AboutMuseum() {
                       HHK
                     </span>
                   </div>
-                  <p className="eyebrow mt-7 text-parchment/40">Homenagem</p>
+                  <p className="eyebrow mt-7 text-parchment/70">Homenagem</p>
                   <h3 className="display mt-4 text-[clamp(1.8rem,3vw,2.6rem)] font-medium leading-[1.05] text-parchment">
                     Uma vida dedicada à causa indigenista.
                   </h3>
                 </div>
 
                 <div className="lg:col-span-8">
-                  <div className="space-y-4 text-[14.5px] leading-[1.8] text-parchment/68 sm:text-[15.5px]">
+                  <div className="space-y-4 text-[14.5px] leading-[1.8] text-parchment/80 sm:text-[15.5px]">
                     {hilmarBio.map((paragraph) => (
                       <p key={paragraph.slice(0, 32)}>{paragraph}</p>
                     ))}
                   </div>
-                  <p className="mt-6 border-t border-parchment/15 pt-5 text-[10.5px] leading-relaxed text-parchment/35">
+                  <p className="mt-6 border-t border-parchment/15 pt-5 text-[11px] leading-relaxed text-parchment/70">
                     Biografia baseada na publicação oficial da Prefeitura de Parauapebas (2023).
                   </p>
                 </div>

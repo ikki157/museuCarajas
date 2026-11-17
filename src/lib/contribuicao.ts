@@ -12,6 +12,7 @@ export type ContributionPayload = {
   website: string
   arquivo: ValidatedFile
   formStartedAt: number
+  formElapsedMs: number
 }
 
 export type ContributionResponse = {
@@ -62,6 +63,7 @@ export async function submitContribution(
   formData.set('autorizacao', String(payload.autorizacao))
   formData.set('website', payload.website)
   formData.set('form_started_at', String(payload.formStartedAt))
+  formData.set('form_elapsed_ms', String(payload.formElapsedMs))
   formData.set('arquivo', payload.arquivo.file, payload.arquivo.file.name)
 
   const { data, error } = await supabase.functions.invoke('enviar-contribuicao', {

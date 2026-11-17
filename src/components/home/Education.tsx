@@ -24,13 +24,13 @@ export function Education() {
               <SectionHeading
                 tone="light"
                 eyebrow="Educação e Cultura"
-                title="Conhecer para preservar."
+                title="Mediação cultural e educação patrimonial."
                 titleId="educacao-title"
               />
             </Reveal>
 
             <Reveal delay={80}>
-              <div className="mt-7 space-y-4 text-[15px] leading-[1.8] text-parchment/65 sm:text-[15.5px]">
+              <div className="mt-7 space-y-4 text-[15px] leading-[1.8] text-parchment/80 sm:text-[15.5px]">
                 <p>
                   O projeto Conhecer para Preservar é voltado principalmente à comunidade escolar. A
                   programação envolve palestras e atividades lúdicas sobre a importância da
@@ -49,7 +49,7 @@ export function Education() {
                   “Parauapebas é conhecida também como uma área muito importante na arqueologia
                   amazônica, com datação encontrada na Serra dos Carajás com mais de 11 mil anos.”
                 </p>
-                <footer className="mt-4 text-[10px] font-semibold uppercase tracking-[0.18em] text-parchment/35">
+                <footer className="mt-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-parchment/75">
                   Rogério Andrade · Arqueólogo do museu
                 </footer>
               </blockquote>
@@ -62,14 +62,14 @@ export function Education() {
                     key={audience.title}
                     className="grid gap-2 border-b border-parchment/15 py-5 sm:grid-cols-[auto_1fr] sm:gap-6"
                   >
-                    <span className="text-[9px] font-medium tabular-nums tracking-[0.18em] text-copper-light/80 sm:pt-1">
+                    <span className="text-[11px] font-medium tabular-nums tracking-[0.18em] text-copper-light sm:pt-1">
                       {String(index + 1).padStart(2, '0')}
                     </span>
                     <div>
                       <h3 className="display text-[19px] font-medium leading-tight text-parchment">
                         {audience.title}
                       </h3>
-                      <p className="mt-1.5 max-w-xl text-[13px] leading-relaxed text-parchment/50">
+                      <p className="mt-1.5 max-w-xl text-[13px] leading-relaxed text-parchment/75">
                         {audience.description}
                       </p>
                     </div>
@@ -100,7 +100,7 @@ export function Education() {
                   />
                 </ButtonLink>
               </div>
-              <p className="mt-4 max-w-xl text-[10.5px] leading-relaxed text-parchment/35">
+              <p className="mt-4 max-w-xl text-[11px] leading-relaxed text-parchment/70">
                 Visitas de escolas e outras instituições devem ser solicitadas com ofício enviado
                 aos e-mails institucionais do museu.
               </p>
@@ -109,22 +109,25 @@ export function Education() {
 
           <div className="lg:col-span-5">
             <Reveal delay={120}>
-              <figure className="relative">
+              <figure className="relative pb-6">
                 <div className="img-zoom overflow-hidden bg-forest-soft">
                   <img
                     src="/images/museu/museu-04.jpg"
                     alt="Instrumentos musicais e adornos com plumária em exposição no museu."
+                    width={1280}
+                    height={720}
                     loading="lazy"
+                    decoding="async"
                     className="aspect-[4/5] w-full object-cover"
                   />
                 </div>
-                <figcaption className="absolute -bottom-5 left-4 right-4 border border-parchment/15 bg-forest-deep/95 p-5 text-parchment/55 shadow-2xl backdrop-blur-sm sm:left-6 sm:right-6">
+                <figcaption className="absolute -bottom-5 left-4 right-4 border border-parchment/15 bg-forest-deep/95 p-5 text-parchment/80 shadow-2xl backdrop-blur-sm sm:left-6 sm:right-6">
                   <p className="eyebrow text-copper-light">Acervo em diálogo</p>
                   <p className="mt-2 text-[12.5px] leading-relaxed">
                     Instrumentos e adornos ajudam a contar histórias sobre técnicas, saberes e
                     relações culturais na Amazônia.
                   </p>
-                  <p className="mt-3 text-[9px] leading-relaxed text-parchment/30">
+                  <p className="mt-3 text-[11px] leading-relaxed text-parchment/70">
                     Fotografia: Prefeitura de Parauapebas / Ascom (2023)
                   </p>
                 </figcaption>

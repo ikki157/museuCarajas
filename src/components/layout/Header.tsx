@@ -27,14 +27,34 @@ export function Header() {
   }, [isDesktop])
 
   useEffect(() => {
-    if (!menuOpen) return
+    const main = document.getElementById('conteudo')
+    const footer = document.querySelector('footer')
+
+    if (!menuOpen) {
+      main?.removeAttribute('inert')
+      main?.removeAttribute('aria-hidden')
+      footer?.removeAttribute('inert')
+      footer?.removeAttribute('aria-hidden')
+      return
+    }
+
+    main?.setAttribute('inert', '')
+    main?.setAttribute('aria-hidden', 'true')
+    footer?.setAttribute('inert', '')
+    footer?.setAttribute('aria-hidden', 'true')
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setMenuOpen(false)
     }
 
     document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      main?.removeAttribute('inert')
+      main?.removeAttribute('aria-hidden')
+      footer?.removeAttribute('inert')
+      footer?.removeAttribute('aria-hidden')
+    }
   }, [menuOpen])
 
   const closeMenu = () => {
@@ -82,10 +102,10 @@ export function Header() {
                   href={item.href}
                   aria-current={isActive ? 'location' : undefined}
                   className={cn(
-                    'relative py-2 text-[10.5px] font-semibold uppercase tracking-[0.13em] transition-colors duration-300',
+                    'relative py-2 text-[11px] font-semibold uppercase tracking-[0.13em] transition-colors duration-300',
                     onDark
-                      ? 'text-parchment/70 hover:text-parchment'
-                      : 'text-ink/65 hover:text-clay',
+                      ? 'text-parchment/75 hover:text-parchment'
+                      : 'text-ink/75 hover:text-clay',
                     isActive && (onDark ? 'text-parchment' : 'text-clay'),
                   )}
                 >
@@ -105,11 +125,16 @@ export function Header() {
           <div className="flex shrink-0 items-center gap-3">
             <a
               href="#contribua"
+              aria-current={activeSection === 'contribua' ? 'location' : undefined}
               className={cn(
-                'hidden items-center gap-2 rounded-sm border px-4 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.14em] transition duration-300 xl:inline-flex',
+                'hidden items-center gap-2 rounded-sm border px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] transition duration-300 xl:inline-flex',
                 onDark
                   ? 'border-parchment/35 text-parchment hover:bg-parchment hover:text-forest-deep'
                   : 'border-ink/25 text-ink hover:bg-ink hover:text-parchment',
+                activeSection === 'contribua' &&
+                  (onDark
+                    ? 'border-copper-light bg-parchment/15 ring-1 ring-copper-light/50'
+                    : 'border-clay bg-clay text-cream hover:bg-clay-dark'),
               )}
             >
               Contribua
@@ -173,7 +198,7 @@ export function Header() {
             <button
               type="button"
               onClick={closeMenu}
-              className="inline-flex items-center gap-2 rounded-sm border border-parchment/25 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-parchment/80 transition hover:border-parchment/60 hover:text-parchment"
+              className="inline-flex items-center gap-2 rounded-sm border border-parchment/25 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-parchment/85 transition hover:border-parchment/60 hover:text-parchment"
             >
               Fechar
               <X size={14} aria-hidden="true" />
@@ -189,7 +214,7 @@ export function Header() {
                     onClick={() => setMenuOpen(false)}
                     className="group flex items-baseline gap-4 border-b border-parchment/10 py-4"
                   >
-                    <span className="w-6 text-[10px] font-medium tabular-nums tracking-wider text-parchment/30">
+                    <span className="w-6 text-[11px] font-medium tabular-nums tracking-wider text-parchment/70">
                       {String(index + 1).padStart(2, '0')}
                     </span>
                     <span className="display text-[clamp(1.5rem,6vw,1.9rem)] font-medium leading-tight text-parchment transition-colors group-hover:text-copper-light">
@@ -198,7 +223,7 @@ export function Header() {
                     <ArrowUpRight
                       size={16}
                       strokeWidth={1.5}
-                      className="ml-auto shrink-0 text-parchment/25 transition group-hover:text-copper-light"
+                      className="ml-auto shrink-0 text-parchment/60 transition group-hover:text-copper-light"
                       aria-hidden="true"
                     />
                   </a>
@@ -223,7 +248,7 @@ export function Header() {
               </li>
             </ul>
 
-            <div className="mt-8 border-t border-parchment/10 pt-6 text-[13px] leading-relaxed text-parchment/60">
+            <div className="mt-8 border-t border-parchment/10 pt-6 text-[13px] leading-relaxed text-parchment/75">
               <p className="flex items-start gap-3">
                 <MapPin size={15} className="mt-0.5 shrink-0 text-copper-light" aria-hidden="true" />
                 <span>

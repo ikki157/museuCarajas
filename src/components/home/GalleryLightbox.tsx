@@ -60,7 +60,7 @@ export function GalleryLightbox({ items, index, onClose, onNavigate }: GalleryLi
       >
         <div className="flex items-center justify-between gap-4 border-b border-parchment/10 px-5 py-4 sm:px-8">
           <div className="min-w-0">
-            <p className="text-[8.5px] font-semibold uppercase tracking-[0.2em] text-copper-light">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-copper-light">
               {item.categoria}
             </p>
             <h2
@@ -73,7 +73,7 @@ export function GalleryLightbox({ items, index, onClose, onNavigate }: GalleryLi
 
           <div className="flex shrink-0 items-center gap-4">
             <span
-              className="text-[10px] tabular-nums tracking-[0.14em] text-parchment/40"
+              className="text-[11px] tabular-nums tracking-[0.14em] text-parchment/75"
               aria-live="polite"
             >
               {String(index + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
@@ -82,7 +82,7 @@ export function GalleryLightbox({ items, index, onClose, onNavigate }: GalleryLi
               type="button"
               onClick={onClose}
               aria-label="Fechar visualização ampliada"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-parchment/25 text-parchment/80 transition hover:border-parchment/60 hover:bg-parchment/10 hover:text-parchment"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-parchment/25 text-parchment/85 transition hover:border-parchment/60 hover:bg-parchment/10 hover:text-parchment"
             >
               <X size={18} strokeWidth={1.7} aria-hidden="true" />
             </button>
@@ -95,7 +95,7 @@ export function GalleryLightbox({ items, index, onClose, onNavigate }: GalleryLi
               type="button"
               onClick={() => onNavigate(previousIndex)}
               aria-label="Ver imagem anterior"
-              className="absolute left-2 z-10 inline-flex h-11 w-11 items-center justify-center rounded-full border border-parchment/20 bg-forest-deep/50 text-parchment/75 backdrop-blur-sm transition hover:border-parchment/60 hover:text-parchment sm:left-6"
+              className="absolute left-2 z-10 inline-flex h-11 w-11 items-center justify-center rounded-full border border-parchment/20 bg-forest-deep/50 text-parchment/85 backdrop-blur-sm transition hover:border-parchment/60 hover:text-parchment sm:left-6"
             >
               <ArrowLeft size={19} strokeWidth={1.6} aria-hidden="true" />
             </button>
@@ -106,10 +106,13 @@ export function GalleryLightbox({ items, index, onClose, onNavigate }: GalleryLi
               key={item.id}
               src={imageUrl}
               alt={item.descricao ? `${item.titulo}. ${item.descricao}` : item.titulo}
+              width={1280}
+              height={720}
+              decoding="async"
               className="animate-fade-in max-h-[70vh] max-w-full object-contain shadow-[0_30px_80px_-20px_rgba(0,0,0,0.55)]"
             />
           ) : (
-            <div className="flex flex-col items-center gap-4 border border-parchment/15 px-10 py-16 text-parchment/45">
+            <div className="flex flex-col items-center gap-4 border border-parchment/15 px-10 py-16 text-parchment/70">
               <ImageOff size={30} strokeWidth={1.3} aria-hidden="true" />
               <p className="text-[11px] uppercase tracking-[0.16em]">Imagem indisponível</p>
             </div>
@@ -120,7 +123,7 @@ export function GalleryLightbox({ items, index, onClose, onNavigate }: GalleryLi
               type="button"
               onClick={() => onNavigate(nextIndex)}
               aria-label="Ver próxima imagem"
-              className="absolute right-2 z-10 inline-flex h-11 w-11 items-center justify-center rounded-full border border-parchment/20 bg-forest-deep/50 text-parchment/75 backdrop-blur-sm transition hover:border-parchment/60 hover:text-parchment sm:right-6"
+              className="absolute right-2 z-10 inline-flex h-11 w-11 items-center justify-center rounded-full border border-parchment/20 bg-forest-deep/50 text-parchment/85 backdrop-blur-sm transition hover:border-parchment/60 hover:text-parchment sm:right-6"
             >
               <ArrowRight size={19} strokeWidth={1.6} aria-hidden="true" />
             </button>
@@ -131,16 +134,16 @@ export function GalleryLightbox({ items, index, onClose, onNavigate }: GalleryLi
           <div className="mx-auto flex max-w-5xl flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               {item.descricao ? (
-                <p className="max-w-3xl text-[13px] leading-relaxed text-parchment/65">
+                <p className="max-w-3xl text-[13px] leading-relaxed text-parchment/80">
                   {item.descricao}
                 </p>
               ) : null}
-              <p className="mt-2 text-[9px] leading-relaxed text-parchment/35">
+              <p className="mt-2 text-[11px] leading-relaxed text-parchment/70">
                 {item.credito ?? 'Acervo do Museu Municipal Hilmar Harry Kluck'}
                 {item.criado_em ? ` · ${formatDate(item.criado_em)}` : ''}
               </p>
             </div>
-            <p className="shrink-0 text-[8.5px] uppercase tracking-[0.14em] text-parchment/25">
+            <p className="shrink-0 text-[11px] uppercase tracking-[0.14em] text-parchment/70">
               Use ← → para navegar · Esc para fechar
             </p>
           </div>

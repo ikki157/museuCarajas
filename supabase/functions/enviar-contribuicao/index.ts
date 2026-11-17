@@ -17,6 +17,7 @@ type ValidatedFile = {
   extension: string
   mime: string
   size: number
+  bytes: Uint8Array
 }
 
 const FORMAT_LABELS: Record<FileFormat, string> = {
@@ -102,7 +103,7 @@ function jsonResponse(
 
 function isOriginAllowed(origin: string | null): boolean {
   if (configuredOrigins.length === 0) return true
-  if (!origin) return true
+  if (!origin) return false
   return configuredOrigins.includes(origin)
 }
 
@@ -110,8 +111,7 @@ function ascii(bytes: Uint8Array, start: number, length: number): string {
   return String.fromCharCode(...bytes.subarray(start, start + length))
 }
 
-function containsAscii(bytes: Uint8Array, value: string): boolean {
-  const target = value.split('').map((character) => character.charCodeAt(0))
+function containsBytes(bytes: Uint8Array, target: readonly number[]): boolean {
   if (target.length === 0 || bytes.length < target.length) return false
 
   for (let index = 0; index <= bytes.length - target.length; index += 1) {
@@ -126,6 +126,11 @@ function containsAscii(bytes: Uint8Array, value: string): boolean {
   }
 
   return false
+}
+
+function containsAscii(bytes: Uint8Array, value: string): boolean {
+  const target = value.split('').map((character) => character.charCodeAt(0))
+  return containsBytes(bytes, target)
 }
 
 function detectFormat(bytes: Uint8Array): FileFormat | null {
@@ -168,46 +173,34 @@ async function sha256Hex(value: string | Uint8Array): Promise<string> {
     .join('')
 }
 
-async function hasValidImageEnding(
-  file: File,
+function hasValidImageEnding(
+  bytes: Uint8Array,
   format: Exclude<FileFormat, 'pdf'>,
-  header: Uint8Array,
-): Promise<boolean> {
+): boolean {
   if (format === 'webp') {
+    if (bytes.length < 20) return false
+    if (ascii(bytes, 0, 4) !== 'RIFF' || ascii(bytes, 8, 4) !== 'WEBP') return false
+    const chunkType = ascii(bytes, 12, 4)
+    if (chunkType !== 'VP8 ' && chunkType !== 'VP8L' && chunkType !== 'VP8X') return false
     const riffSize =
-      header[4] + (header[5] << 8) + (header[6] << 16) + (header[7] << 24)
-    return riffSize === 0 || riffSize === file.size - 8
+      (bytes[4] | (bytes[5] << 8) | (bytes[6] << 16) | (bytes[7] << 24)) >>> 0
+    return riffSize === 0 || riffSize + 8 <= bytes.length
   }
 
-  const tail = new Uint8Array(
-    await file.slice(Math.max(0, file.size - 2048)).arrayBuffer(),
-  )
+  const tail = bytes.subarray(Math.max(0, bytes.length - 4096))
 
   if (format === 'jpg') {
-    return containsAscii(tail, String.fromCharCode(0xff, 0xd9))
+    return bytes.length >= 4 && containsBytes(tail, [0xff, 0xd9])
   }
 
-  if (tail.length < 12) return false
-  const lastTwelve = tail.subarray(tail.length - 12)
-  return (
-    lastTwelve[0] === 0x00 &&
-    lastTwelve[1] === 0x00 &&
-    lastTwelve[2] === 0x00 &&
-    lastTwelve[3] === 0x00 &&
-    ascii(lastTwelve, 4, 4) === 'IEND' &&
-    lastTwelve[8] === 0xae &&
-    lastTwelve[9] === 0x42 &&
-    lastTwelve[10] === 0x60 &&
-    lastTwelve[11] === 0x82
-  )
+  if (bytes.length < 20) return false
+  return containsBytes(tail, [0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82])
 }
 
-async function hasValidPdfEnding(file: File): Promise<boolean> {
-  if (file.size < 100) return false
+function hasValidPdfEnding(bytes: Uint8Array): boolean {
+  if (bytes.length < 100) return false
 
-  const tail = new Uint8Array(
-    await file.slice(Math.max(0, file.size - 4096)).arrayBuffer(),
-  )
+  const tail = bytes.subarray(Math.max(0, bytes.length - 4096))
   return containsAscii(tail, '%%EOF')
 }
 
@@ -236,7 +229,16 @@ async function validateFile(file: File): Promise<ValidatedFile> {
     )
   }
 
-  const header = new Uint8Array(await file.slice(0, 16).arrayBuffer())
+  if (file.size > MAX_PDF_BYTES) {
+    throw new RequestError(
+      extension === 'pdf'
+        ? 'O arquivo excede o limite de 15 MB para documentos PDF.'
+        : 'O arquivo excede o limite de 10 MB para fotografias.',
+    )
+  }
+
+  const bytes = new Uint8Array(await file.arrayBuffer())
+  const header = bytes.subarray(0, 16)
   const format = detectFormat(header)
 
   if (!format) {
@@ -270,12 +272,12 @@ async function validateFile(file: File): Promise<ValidatedFile> {
   }
 
   if (format === 'pdf') {
-    if (!(await hasValidPdfEnding(file))) {
+    if (!hasValidPdfEnding(bytes)) {
       throw new RequestError(
         'O PDF parece estar corrompido ou incompleto. Verifique o arquivo e tente novamente.',
       )
     }
-  } else if (!(await hasValidImageEnding(file, format, header))) {
+  } else if (!hasValidImageEnding(bytes, format)) {
     throw new RequestError(
       'A imagem parece estar corrompida ou incompleta. Tente outro arquivo.',
     )
@@ -287,6 +289,7 @@ async function validateFile(file: File): Promise<ValidatedFile> {
     extension: format === 'jpg' ? 'jpg' : format,
     mime: CANONICAL_MIME[format],
     size: file.size,
+    bytes,
   }
 }
 
@@ -315,7 +318,9 @@ function validateFields(form: FormData): {
   const descricao = readField(form, 'descricao')
   const autorizacao = readField(form, 'autorizacao') === 'true'
   const website = readField(form, 'website')
-  const formStartedAt = Number(readField(form, 'form_started_at'))
+  const rawElapsedMs = readField(form, 'form_elapsed_ms')
+  const rawStartedAt = readField(form, 'form_started_at')
+  const formStartedAt = Number(rawStartedAt)
   const arquivo = form.get('arquivo')
 
   if (website) {
@@ -355,15 +360,29 @@ function validateFields(form: FormData): {
     throw new RequestError('Marque a autorização para que o museu analise a contribuição.')
   }
 
-  const elapsed = Date.now() - formStartedAt
-  if (
-    !Number.isFinite(formStartedAt) ||
-    elapsed < MIN_FORM_TIME_MS ||
-    elapsed > MAX_FORM_TIME_MS
-  ) {
-    throw new RequestError(
-      'Não foi possível validar o envio. Recarregue a página e tente novamente.',
-    )
+  if (rawElapsedMs !== '') {
+    const formElapsedMs = Number(rawElapsedMs)
+    if (
+      !Number.isFinite(formElapsedMs) ||
+      formElapsedMs < MIN_FORM_TIME_MS ||
+      formElapsedMs > MAX_FORM_TIME_MS
+    ) {
+      throw new RequestError(
+        'Não foi possível validar o envio. Recarregue a página e tente novamente.',
+      )
+    }
+  } else {
+    const elapsed = Date.now() - formStartedAt
+    if (
+      !Number.isFinite(formStartedAt) ||
+      (elapsed >= 0 && elapsed < MIN_FORM_TIME_MS) ||
+      elapsed > MAX_FORM_TIME_MS ||
+      elapsed < -MAX_FORM_TIME_MS
+    ) {
+      throw new RequestError(
+        'Não foi possível validar o envio. Recarregue a página e tente novamente.',
+      )
+    }
   }
 
   if (!(arquivo instanceof File)) {
@@ -403,13 +422,18 @@ function makeStoragePath(extension: string): string {
 }
 
 function getClientIp(request: Request): string {
+  const directIp =
+    request.headers.get('cf-connecting-ip')?.trim() ||
+    request.headers.get('x-real-ip')?.trim()
+  if (directIp) return directIp
+
   const forwarded = request.headers.get('x-forwarded-for')
-  if (forwarded) return forwarded.split(',')[0].trim()
-  return (
-    request.headers.get('cf-connecting-ip') ??
-    request.headers.get('x-real-ip') ??
-    'unknown'
-  )
+  if (forwarded) {
+    const first = forwarded.split(',')[0]?.trim()
+    if (first) return first
+  }
+
+  return 'unknown'
 }
 
 function createServiceClient(): SupabaseClient {
@@ -448,7 +472,7 @@ async function handleRequest(request: Request): Promise<Response> {
   }
 
   const contentLength = Number(request.headers.get('content-length') ?? '0')
-  if (contentLength > MAX_REQUEST_BYTES) {
+  if (!Number.isFinite(contentLength) || contentLength > MAX_REQUEST_BYTES) {
     return jsonResponse(
       { error: 'O envio excede o tamanho máximo permitido.' },
       413,
@@ -457,9 +481,6 @@ async function handleRequest(request: Request): Promise<Response> {
   }
 
   try {
-    const form = await request.formData()
-    const fields = validateFields(form)
-    const file = await validateFile(fields.arquivo)
     const supabase = createServiceClient()
 
     const salt =
@@ -488,13 +509,16 @@ async function handleRequest(request: Request): Promise<Response> {
       )
     }
 
-    const bytes = new Uint8Array(await fields.arquivo.arrayBuffer())
-    const fileHash = await sha256Hex(bytes)
+    const form = await request.formData()
+    const fields = validateFields(form)
+    const file = await validateFile(fields.arquivo)
+
+    const fileHash = await sha256Hex(file.bytes)
     const storagePath = makeStoragePath(file.extension)
 
     const { error: uploadError } = await supabase.storage
       .from('contribuicoes')
-      .upload(storagePath, bytes, {
+      .upload(storagePath, file.bytes, {
         contentType: file.mime,
         cacheControl: '3600',
         upsert: false,

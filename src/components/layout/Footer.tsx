@@ -15,7 +15,7 @@ export function Footer() {
             <a href="#inicio" aria-label="Voltar ao início" className="inline-block">
               <Logo tone="light" />
             </a>
-            <p className="mt-7 max-w-sm text-[14.5px] leading-relaxed text-parchment/60">
+            <p className="mt-7 max-w-sm text-[14.5px] leading-relaxed text-parchment/75">
               Um espaço dedicado à memória, à arqueologia e à riqueza cultural de Parauapebas e da
               região de Carajás.
             </p>
@@ -34,13 +34,13 @@ export function Footer() {
           </div>
 
           <div className="lg:col-span-3">
-            <h3 className="eyebrow text-parchment/40">Navegação</h3>
+            <h3 className="eyebrow text-parchment/70">Navegação</h3>
             <ul className="mt-5 grid grid-cols-2 gap-x-4 gap-y-2.5 text-[13.5px] lg:grid-cols-1">
               {navItems.map((item) => (
                 <li key={item.id}>
                   <a
                     href={item.href}
-                    className="text-parchment/70 transition hover:text-copper-light"
+                    className="text-parchment/80 transition hover:text-copper-light"
                   >
                     {item.label}
                   </a>
@@ -49,7 +49,7 @@ export function Footer() {
               <li>
                 <a
                   href="#contribua"
-                  className="text-parchment/70 transition hover:text-copper-light"
+                  className="text-parchment/80 transition hover:text-copper-light"
                 >
                   Contribua com o Museu
                 </a>
@@ -58,8 +58,8 @@ export function Footer() {
           </div>
 
           <div className="lg:col-span-4">
-            <h3 className="eyebrow text-parchment/40">Contato e localização</h3>
-            <address className="mt-5 space-y-4 text-[13.5px] not-italic leading-relaxed text-parchment/70">
+            <h3 className="eyebrow text-parchment/70">Contato e localização</h3>
+            <address className="mt-5 space-y-4 text-[13.5px] not-italic leading-relaxed text-parchment/80">
               <p className="flex items-start gap-3">
                 <MapPin size={16} className="mt-0.5 shrink-0 text-copper-light" aria-hidden="true" />
                 <span>
@@ -83,7 +83,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="grid gap-6 border-b border-parchment/10 py-8 text-[12px] leading-relaxed text-parchment/45 lg:grid-cols-12">
+        <div className="grid gap-6 border-b border-parchment/10 py-8 text-[12px] leading-relaxed text-parchment/70 lg:grid-cols-12">
           <div className="lg:col-span-8">
             <p>
               Fotografias: {photoCredit} (2023). Conteúdo institucional baseado na{' '}
@@ -91,7 +91,7 @@ export function Footer() {
                 href={sourceUrl}
                 target="_blank"
                 rel="noreferrer noopener"
-                className="text-parchment/70 underline decoration-parchment/25 underline-offset-4 transition hover:text-copper-light"
+                className="text-parchment/85 underline decoration-parchment/35 underline-offset-4 transition hover:text-copper-light"
               >
                 publicação oficial da Prefeitura de Parauapebas
               </a>
@@ -105,7 +105,7 @@ export function Footer() {
           <div className="flex items-start lg:col-span-4 lg:justify-end">
             <a
               href="#inicio"
-              className="group inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-parchment/55 transition hover:text-parchment"
+              className="group inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-parchment/75 transition hover:text-parchment"
             >
               Voltar ao topo
               <ArrowUp
@@ -118,7 +118,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 pt-7 text-[11px] text-parchment/35 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-2 pt-7 text-[11px] text-parchment/70 sm:flex-row sm:items-center sm:justify-between">
           <p>
             © {year} {museum.name} · {museum.city} – {museum.stateCode}
           </p>

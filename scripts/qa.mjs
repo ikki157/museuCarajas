@@ -9,7 +9,12 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const OUT_DIR = path.join(os.tmpdir(), 'museu-qa')
 fs.mkdirSync(OUT_DIR, { recursive: true })
 
-const browser = await chromium.launch({ channel: 'msedge', headless: true })
+let browser
+try {
+  browser = await chromium.launch({ channel: 'msedge', headless: true })
+} catch {
+  browser = await chromium.launch({ headless: true })
+}
 
 async function preparePage(viewport, isMobile = false) {
   const context = await browser.newContext({

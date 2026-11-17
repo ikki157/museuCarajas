@@ -27,24 +27,26 @@ function GalleryCard({ item, onOpen }: { item: GaleriaItem; onOpen: () => void }
         onClick={onOpen}
         disabled={!imageUrl}
         aria-label={`Ampliar imagem: ${item.titulo}`}
-        className="relative block w-full overflow-hidden bg-sand-deep text-left disabled:cursor-default"
+        className="relative block aspect-[16/10] w-full overflow-hidden bg-sand-deep text-left disabled:cursor-default"
       >
         {imageUrl ? (
           <img
             src={imageUrl}
             alt={item.descricao ? `${item.titulo}. ${item.descricao}` : item.titulo}
+            width={1280}
+            height={720}
             loading="lazy"
             decoding="async"
-            className="h-auto w-full object-cover transition duration-700 ease-museum group-hover:scale-[1.025]"
+            className="h-full w-full object-cover transition duration-700 ease-museum group-hover:scale-[1.025]"
           />
         ) : (
-          <div className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-3 bg-sand text-stone">
+          <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-sand text-stone">
             <ImageOff size={24} strokeWidth={1.4} aria-hidden="true" />
-            <span className="text-[10px] uppercase tracking-[0.16em]">Imagem indisponível</span>
+            <span className="text-[11px] uppercase tracking-[0.16em]">Imagem indisponível</span>
           </div>
         )}
 
-        <span className="absolute right-3 top-3 border border-parchment/25 bg-forest-deep/55 px-2 py-1 text-[8px] font-semibold uppercase tracking-[0.16em] text-parchment/80 backdrop-blur-sm">
+        <span className="absolute right-3 top-3 border border-parchment/25 bg-forest-deep/75 px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-parchment/90 backdrop-blur-sm">
           {item.formato}
         </span>
 
@@ -60,10 +62,10 @@ function GalleryCard({ item, onOpen }: { item: GaleriaItem; onOpen: () => void }
 
       <figcaption className="pt-3.5">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-[8.5px] font-semibold uppercase tracking-[0.18em] text-clay">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-clay">
             {item.categoria}
           </p>
-          <p className="shrink-0 text-[8.5px] text-stone/55">{formatDate(item.criado_em)}</p>
+          <p className="shrink-0 text-[11px] text-stone">{formatDate(item.criado_em)}</p>
         </div>
         <h3 className="display mt-1.5 text-[19px] font-medium leading-tight text-forest">
           {item.titulo}
@@ -73,7 +75,7 @@ function GalleryCard({ item, onOpen }: { item: GaleriaItem; onOpen: () => void }
             {item.descricao}
           </p>
         ) : null}
-        <p className="mt-2 text-[8.5px] leading-relaxed text-stone/45">
+        <p className="mt-2 text-[11px] leading-relaxed text-stone">
           {item.credito ?? 'Acervo do Museu Municipal Hilmar Harry Kluck'}
         </p>
       </figcaption>
@@ -102,8 +104,30 @@ function GallerySkeleton() {
 
 export function Gallery() {
   const { items, loading, error, status, refresh } = useGaleria()
-  const [selectedCategory, setSelectedCategory] = useState(ALL_CATEGORIES)
-  const [lightboxId, setLightboxId] = useState<string | null>(null)
+  const [selectedCategory, setSelectedCategory] = useState(() => {
+    if (typeof window === 'undefined') return ALL_CATEGORIES
+    return new URLSearchParams(window.location.search).get('categoria')?.trim() || ALL_CATEGORIES
+  })
+  const [lightboxId, setLightboxId] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null
+    return new URLSearchParams(window.location.search).get('foto')?.trim() || null
+  })
+
+  const syncGalleryUrl = (nextCategory: string, nextPhotoId: string | null) => {
+    if (typeof window === 'undefined') return
+    const url = new URL(window.location.href)
+    if (nextCategory && nextCategory !== ALL_CATEGORIES) {
+      url.searchParams.set('categoria', nextCategory)
+    } else {
+      url.searchParams.delete('categoria')
+    }
+    if (nextPhotoId) {
+      url.searchParams.set('foto', nextPhotoId)
+    } else {
+      url.searchParams.delete('foto')
+    }
+    window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`)
+  }
 
   const categories = useMemo(
     () => Array.from(new Set(items.map((item) => item.categoria))).sort((a, b) => a.localeCompare(b, 'pt-BR')),
@@ -123,14 +147,16 @@ export function Gallery() {
     : -1
 
   useEffect(() => {
+    if (loading || items.length === 0) return
     if (selectedCategory !== ALL_CATEGORIES && !categories.includes(selectedCategory)) {
       setSelectedCategory(ALL_CATEGORIES)
     }
-  }, [categories, selectedCategory])
+  }, [categories, items.length, loading, selectedCategory])
 
   useEffect(() => {
+    if (loading || items.length === 0) return
     if (lightboxId && lightboxIndex === -1) setLightboxId(null)
-  }, [lightboxId, lightboxIndex])
+  }, [items.length, lightboxId, lightboxIndex, loading])
 
   const statusInfo = statusCopy[status]
   const hasItems = items.length > 0
@@ -168,7 +194,7 @@ export function Gallery() {
                     status === 'live' && 'animate-soft-pulse',
                   )}
                 />
-                <span className="text-[9.5px] font-semibold uppercase tracking-[0.14em] text-stone">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-stone">
                   {statusInfo.label}
                 </span>
               </div>
@@ -210,16 +236,17 @@ export function Gallery() {
                 onClick={() => {
                   setSelectedCategory(ALL_CATEGORIES)
                   setLightboxId(null)
+                  syncGalleryUrl(ALL_CATEGORIES, null)
                 }}
                 className={cn(
-                  'shrink-0 border px-3.5 py-2 text-[9.5px] font-semibold uppercase tracking-[0.12em] transition',
+                  'shrink-0 border px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] transition',
                   selectedCategory === ALL_CATEGORIES
                     ? 'border-forest bg-forest text-parchment'
                     : 'border-line text-stone hover:border-forest/40 hover:text-forest',
                 )}
               >
                 Todas
-                <span className="ml-1.5 opacity-55">{items.length}</span>
+                <span className="ml-1.5 opacity-80">{items.length}</span>
               </button>
 
               {categories.map((category) => {
@@ -233,22 +260,23 @@ export function Gallery() {
                     onClick={() => {
                       setSelectedCategory(category)
                       setLightboxId(null)
+                      syncGalleryUrl(category, null)
                     }}
                     className={cn(
-                      'shrink-0 border px-3.5 py-2 text-[9.5px] font-semibold uppercase tracking-[0.12em] transition',
+                      'shrink-0 border px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] transition',
                       selectedCategory === category
                         ? 'border-forest bg-forest text-parchment'
                         : 'border-line text-stone hover:border-forest/40 hover:text-forest',
                     )}
                   >
                     {category}
-                    <span className="ml-1.5 opacity-55">{count}</span>
+                    <span className="ml-1.5 opacity-80">{count}</span>
                   </button>
                 )
               })}
             </div>
 
-            <p className="shrink-0 text-[9.5px] uppercase tracking-[0.16em] text-stone/55">
+            <p className="shrink-0 text-[11px] uppercase tracking-[0.16em] text-stone">
               {filteredItems.length} {filteredItems.length === 1 ? 'imagem' : 'imagens'}
             </p>
           </div>
@@ -272,7 +300,7 @@ export function Gallery() {
 
               {import.meta.env.DEV ? (
                 <details className="mx-auto mt-7 max-w-2xl border border-dashed border-line bg-parchment p-4 text-left">
-                  <summary className="cursor-pointer text-[10px] font-semibold uppercase tracking-[0.14em] text-forest">
+                  <summary className="cursor-pointer text-[11px] font-semibold uppercase tracking-[0.14em] text-forest">
                     Instruções para o ambiente de desenvolvimento
                   </summary>
                   <div className="mt-3 space-y-2 font-mono text-[11px] leading-relaxed text-stone">
@@ -298,7 +326,7 @@ export function Gallery() {
               <button
                 type="button"
                 onClick={refresh}
-                className="group mt-7 inline-flex items-center gap-2 border border-forest/25 px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-forest transition hover:bg-forest hover:text-parchment"
+                className="group mt-7 inline-flex items-center gap-2 border border-forest/25 px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-forest transition hover:bg-forest hover:text-parchment"
               >
                 <RefreshCw size={14} strokeWidth={1.7} aria-hidden="true" />
                 Tentar novamente
@@ -321,13 +349,20 @@ export function Gallery() {
           ) : (
             <div className="gallery-columns columns-1 gap-5 sm:columns-2 lg:columns-3">
               {filteredItems.map((item) => (
-                <GalleryCard key={item.id} item={item} onOpen={() => setLightboxId(item.id)} />
+                <GalleryCard
+                  key={item.id}
+                  item={item}
+                  onOpen={() => {
+                    setLightboxId(item.id)
+                    syncGalleryUrl(selectedCategory, item.id)
+                  }}
+                />
               ))}
             </div>
           )}
         </div>
 
-        <div className="mt-12 flex flex-col gap-4 border-t border-line pt-6 text-[10.5px] leading-relaxed text-stone/65 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-12 flex flex-col gap-4 border-t border-line pt-6 text-[11px] leading-relaxed text-stone sm:flex-row sm:items-center sm:justify-between">
           <p className="max-w-2xl">
             Legendas e categorias demonstrativas, sujeitas à validação curatorial. Créditos das
             fotografias: Prefeitura de Parauapebas / Assessoria de Comunicação (2023).
@@ -351,10 +386,16 @@ export function Gallery() {
         <GalleryLightbox
           items={filteredItems}
           index={lightboxIndex}
-          onClose={() => setLightboxId(null)}
+          onClose={() => {
+            setLightboxId(null)
+            syncGalleryUrl(selectedCategory, null)
+          }}
           onNavigate={(nextIndex) => {
             const nextItem = filteredItems[nextIndex]
-            if (nextItem) setLightboxId(nextItem.id)
+            if (nextItem) {
+              setLightboxId(nextItem.id)
+              syncGalleryUrl(selectedCategory, nextItem.id)
+            }
           }}
         />
       ) : null}

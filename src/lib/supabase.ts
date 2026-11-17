@@ -8,8 +8,9 @@ function readJwtRole(key: string): string | null {
   if (parts.length !== 3) return null
 
   try {
-    const payload = parts[1].replace(/-/g, '+').replace(/_/g, '/')
-    const decoded = JSON.parse(atob(payload)) as { role?: unknown }
+    const normalized = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+    const padded = normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), '=')
+    const decoded = JSON.parse(atob(padded)) as { role?: unknown }
     return typeof decoded.role === 'string' ? decoded.role : null
   } catch {
     return null
@@ -35,10 +36,10 @@ if (usesSecretKey && import.meta.env.DEV) {
 
 export const supabase: SupabaseClient | null = isSupabaseConfigured
   ? createClient(rawUrl, rawKey, {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-        detectSessionInUrl: false,
-      },
-    })
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  })
   : null

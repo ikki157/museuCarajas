@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ChangeEvent,
@@ -100,6 +101,7 @@ export function ContributionForm() {
   const dropzoneRef = useRef<HTMLDivElement>(null)
   const successRef = useRef<HTMLDivElement>(null)
   const formStartedAt = useRef(Date.now())
+  const formOpenedAtPerf = useRef(performance.now())
 
   const isBusy = status === 'submitting' || validatingFile
 
@@ -120,7 +122,7 @@ export function ContributionForm() {
     }
   }, [status])
 
-  const buildErrors = (): FormErrors => {
+  const validationErrors = useMemo<FormErrors>(() => {
     const next: FormErrors = {}
     const name = values.nome.trim()
     const email = values.email.trim()
@@ -159,9 +161,7 @@ export function ContributionForm() {
     }
 
     return next
-  }
-
-  const validationErrors = buildErrors()
+  }, [values, file, fileError, autorizacao])
 
   const showError = (field: FieldName): string | undefined => {
     if (field === 'arquivo' && fileError) return fileError
@@ -231,13 +231,15 @@ export function ContributionForm() {
     setSubmitError(null)
     setProtocolo(null)
     formStartedAt.current = Date.now()
+    formOpenedAtPerf.current = performance.now()
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   const focusFirstError = (firstField: FieldName) => {
     window.requestAnimationFrame(() => {
       if (firstField === 'arquivo') {
-        dropzoneRef.current?.focus()
+        fileInputRef.current?.focus()
+        dropzoneRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
       } else {
         document.getElementById(firstField)?.focus()
       }
@@ -249,8 +251,7 @@ export function ContributionForm() {
     setAttempted(true)
     setSubmitError(null)
 
-    const nextErrors = buildErrors()
-    const firstField = Object.keys(nextErrors)[0] as FieldName | undefined
+    const firstField = Object.keys(validationErrors)[0] as FieldName | undefined
 
     if (firstField) {
       focusFirstError(firstField)
@@ -270,6 +271,7 @@ export function ContributionForm() {
     setStatus('submitting')
 
     try {
+      const elapsedMs = Math.max(0, Math.round(performance.now() - formOpenedAtPerf.current))
       const response = await submitContribution({
         nome: values.nome.trim(),
         email: values.email.trim().toLowerCase(),
@@ -281,6 +283,7 @@ export function ContributionForm() {
         website,
         arquivo: file,
         formStartedAt: formStartedAt.current,
+        formElapsedMs: elapsedMs,
       })
 
       setProtocolo(response.protocolo)
@@ -291,6 +294,7 @@ export function ContributionForm() {
       setTouched({})
       setAttempted(false)
       formStartedAt.current = Date.now()
+      formOpenedAtPerf.current = performance.now()
     } catch (error) {
       setStatus('error')
       setSubmitError(
@@ -324,7 +328,7 @@ export function ContributionForm() {
         </p>
 
         <div className="mt-7 border border-line bg-parchment px-5 py-4">
-          <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-stone/60">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-stone">
             Protocolo de envio
           </p>
           <p className="mt-1 font-mono text-[19px] font-semibold tracking-[0.08em] text-forest">
@@ -332,7 +336,7 @@ export function ContributionForm() {
           </p>
         </div>
 
-        <p className="mt-5 text-[11px] leading-relaxed text-stone/70">
+        <p className="mt-5 text-[11px] leading-relaxed text-stone">
           Guarde o protocolo. Em caso de dúvidas, escreva para{' '}
           <a
             href={`mailto:${visit.emails[0]}`}
@@ -372,7 +376,7 @@ export function ContributionForm() {
             Envie sua contribuição
           </h3>
         </div>
-        <span className="inline-flex shrink-0 items-center gap-1.5 border border-forest/20 px-2.5 py-1.5 text-[8.5px] font-semibold uppercase tracking-[0.14em] text-forest/65">
+        <span className="inline-flex shrink-0 items-center gap-1.5 border border-forest/20 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-forest/80">
           <Lock size={11} strokeWidth={1.8} aria-hidden="true" />
           Projeto Salvaguarda
         </span>
@@ -388,12 +392,12 @@ export function ContributionForm() {
           <AlertTriangle size={18} strokeWidth={1.7} className="mt-0.5 shrink-0" aria-hidden="true" />
           <div className="text-[12px] leading-relaxed">
             <p className="font-semibold">Envio indisponível neste ambiente</p>
-            <p className="mt-1 text-clay/85">
+            <p className="mt-1 text-clay/90">
               A conexão com o Supabase ainda não foi configurada. Nenhuma contribuição será
               enviada. Consulte o README para configurar o serviço.
             </p>
             {import.meta.env.DEV && supabaseConfigIssue ? (
-              <p className="mt-2 font-mono text-[10px] leading-relaxed text-clay/70">
+              <p className="mt-2 font-mono text-[11px] leading-relaxed text-clay/85">
                 {supabaseConfigIssue}
               </p>
             ) : null}
@@ -453,7 +457,7 @@ export function ContributionForm() {
 
             <div>
               <label htmlFor="telefone" className="field-label">
-                Telefone <span className="font-normal normal-case tracking-normal text-stone/60">(opcional)</span>
+                Telefone <span className="font-normal normal-case tracking-normal text-stone">(opcional)</span>
               </label>
               <input
                 id="telefone"
@@ -521,7 +525,7 @@ export function ContributionForm() {
                 <label htmlFor="descricao" className="field-label">
                   Descrição e contexto histórico <span className="text-clay">*</span>
                 </label>
-                <span className="text-[10px] tabular-nums text-stone/55">
+                <span className="text-[11px] tabular-nums text-stone">
                   {values.descricao.length}/2000
                 </span>
               </div>
@@ -540,7 +544,7 @@ export function ContributionForm() {
                 maxLength={2000}
                 className={cn('input-base min-h-[120px] resize-y', showError('descricao') && 'input-error')}
               />
-              <p id="descricao-help" className="mt-1.5 text-[10.5px] leading-relaxed text-stone/55">
+              <p id="descricao-help" className="mt-1.5 text-[11px] leading-relaxed text-stone">
                 Quanto mais contexto, melhor para a análise da equipe do museu.
               </p>
               <FieldError id="descricao-error" message={showError('descricao')} />
@@ -558,7 +562,7 @@ export function ContributionForm() {
                 type="file"
                 accept={ACCEPTED_FILE_EXTENSIONS}
                 onChange={onFileChange}
-                className="sr-only"
+                className="peer sr-only"
                 aria-labelledby="arquivo-label"
                 aria-invalid={Boolean(showError('arquivo'))}
                 aria-describedby={showError('arquivo') ? 'arquivo-error arquivo-help' : 'arquivo-help'}
@@ -580,7 +584,7 @@ export function ContributionForm() {
                     </div>
 
                     <div className="min-w-0 flex-1">
-                      <p className="text-[8.5px] font-semibold uppercase tracking-[0.18em] text-clay">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-clay">
                         {file.category === 'fotografia' ? 'Fotografia' : 'Documento PDF'}
                       </p>
                       <p className="mt-1 truncate text-[13.5px] font-medium text-ink" title={file.file.name}>
@@ -593,7 +597,7 @@ export function ContributionForm() {
                       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
                         <label
                           htmlFor="arquivo"
-                          className="cursor-pointer text-[10px] font-semibold uppercase tracking-[0.12em] text-forest underline decoration-forest/25 underline-offset-4 transition hover:text-clay"
+                          className="cursor-pointer text-[11px] font-semibold uppercase tracking-[0.12em] text-forest underline decoration-forest/25 underline-offset-4 transition hover:text-clay"
                         >
                           Trocar arquivo
                         </label>
@@ -602,7 +606,7 @@ export function ContributionForm() {
                             href={objectUrl}
                             target="_blank"
                             rel="noreferrer noopener"
-                            className="text-[10px] font-semibold uppercase tracking-[0.12em] text-forest underline decoration-forest/25 underline-offset-4 transition hover:text-clay"
+                            className="text-[11px] font-semibold uppercase tracking-[0.12em] text-forest underline decoration-forest/25 underline-offset-4 transition hover:text-clay"
                           >
                             Visualizar PDF
                           </a>
@@ -610,7 +614,7 @@ export function ContributionForm() {
                         <button
                           type="button"
                           onClick={removeFile}
-                          className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-clay transition hover:text-clay-dark"
+                          className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-clay transition hover:text-clay-dark"
                         >
                           <X size={12} strokeWidth={2} aria-hidden="true" />
                           Remover
@@ -630,7 +634,7 @@ export function ContributionForm() {
                   onDragLeave={() => setIsDragging(false)}
                   onDrop={onDrop}
                   className={cn(
-                    'border border-dashed p-6 transition-colors sm:p-8',
+                    'border border-dashed p-6 transition-colors peer-focus-visible:border-copper peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-copper sm:p-8',
                     isDragging
                       ? 'border-copper bg-copper/5'
                       : showError('arquivo')
@@ -654,7 +658,7 @@ export function ContributionForm() {
                         ? 'Verificando formato e integridade…'
                         : 'Arraste um arquivo ou clique para selecionar'}
                     </span>
-                    <span id="arquivo-help" className="mt-1.5 max-w-sm text-[10.5px] leading-relaxed text-stone">
+                    <span id="arquivo-help" className="mt-1.5 max-w-sm text-[11px] leading-relaxed text-stone">
                       Fotografias em JPG, PNG ou WEBP até 10 MB. Documentos em PDF até 15 MB. A
                       extensão, o tipo MIME e o conteúdo real do arquivo são verificados.
                     </span>
@@ -713,7 +717,7 @@ export function ContributionForm() {
               <AlertCircle size={17} strokeWidth={1.8} className="mt-0.5 shrink-0" aria-hidden="true" />
               <div>
                 <p>{submitError}</p>
-                <p className="mt-1.5 text-clay/75">
+                <p className="mt-1.5 text-clay/85">
                   Se o problema persistir, envie os dados para{' '}
                   <a
                     href={`mailto:${visit.emails[0]}`}
@@ -728,7 +732,7 @@ export function ContributionForm() {
           ) : null}
 
           <div className="mt-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-[10px] leading-relaxed text-stone/55">
+            <p className="text-[11px] leading-relaxed text-stone">
               Campos com <span className="text-clay">*</span> são obrigatórios.
             </p>
             <Button
@@ -756,7 +760,7 @@ export function ContributionForm() {
               <div className="h-0.5 overflow-hidden bg-line">
                 <div className="animate-progress h-full w-1/2 bg-copper" aria-hidden="true" />
               </div>
-              <p className="mt-2 text-[10px] text-stone" role="status">
+              <p className="mt-2 text-[11px] text-stone" role="status">
                 Enviando o arquivo e registrando a contribuição. Não feche esta página.
               </p>
             </div>

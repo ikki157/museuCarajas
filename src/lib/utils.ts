@@ -1,3 +1,5 @@
+import { visit } from '../data/content'
+
 export function cn(...classes: Array<string | false | null | undefined>): string {
   return classes.filter(Boolean).join(' ')
 }
@@ -20,17 +22,13 @@ export function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1).replace('.', ',')} MB`
 }
 
-export function normalizeText(value: string): string {
-  return value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim()
-}
-
-export function buildMailto(subject: string, body?: string): string {
+export function buildMailto(
+  subject: string,
+  body?: string,
+  recipients: readonly string[] = visit.emails,
+): string {
   const params = new URLSearchParams()
   if (body) params.set('body', body)
   params.set('subject', subject)
-  return `mailto:museudeparauapebas@gmail.com,museu.secult@parauapebas.pa.gov.br?${params.toString()}`
+  return `mailto:${recipients.join(',')}?${params.toString()}`
 }

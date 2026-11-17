@@ -57,6 +57,38 @@ export function Header() {
     }
   }, [menuOpen])
 
+  // Navegação desktop dividida em duas zonas para equilibrar o layout 3 colunas.
+  // "Início" fica acessível pela marca central (link para #inicio).
+  const desktopNav = navItems.filter((item) => item.id !== 'inicio')
+  const leftNav = desktopNav.slice(0, 4)
+  const rightNav = desktopNav.slice(4)
+
+  const renderNavLink = (item: (typeof navItems)[number]) => {
+    const isActive = activeSection === item.id
+
+    return (
+      <a
+        key={item.id}
+        href={item.href}
+        aria-current={isActive ? 'location' : undefined}
+        className={cn(
+          'relative whitespace-nowrap py-2 text-[10.5px] font-semibold uppercase tracking-[0.18em] transition-colors duration-300',
+          onDark ? 'text-parchment/85 hover:text-parchment' : 'text-ink/85 hover:text-forest',
+          isActive && (onDark ? 'text-parchment' : 'text-forest'),
+        )}
+      >
+        {item.label}
+        <span
+          aria-hidden="true"
+          className={cn(
+            'absolute -bottom-0.5 left-0 h-px bg-current transition-all duration-300',
+            isActive ? 'w-full' : 'w-0',
+          )}
+        />
+      </a>
+    )
+  }
+
   const closeMenu = () => {
     setMenuOpen(false)
     window.setTimeout(() => toggleRef.current?.focus(), 0)
@@ -82,63 +114,40 @@ export function Header() {
               : 'border-b border-transparent bg-transparent',
         )}
       >
-        <div className="site-container flex h-[84px] items-center justify-between gap-6">
+        <div className="site-container grid h-[84px] grid-cols-[1fr_auto] items-center gap-6 xl:grid-cols-[1fr_auto_1fr]">
+          {/* Zona esquerda: navegação (primeira metade) */}
+          <nav aria-label="Navegação principal" className="hidden items-center gap-6 xl:flex">
+            {leftNav.map(renderNavLink)}
+          </nav>
+
+          {/* Zona central: marca */}
           <a
             href="#inicio"
             aria-label="Museu Municipal Hilmar Harry Kluck — ir para o início"
             onClick={() => setMenuOpen(false)}
             className="shrink-0"
           >
-            <Logo tone={onDark ? 'light' : 'dark'} compact />
+            <Logo tone={onDark ? 'light' : 'dark'} variant="wordmark" />
           </a>
 
-          <nav aria-label="Navegação principal" className="hidden items-center gap-5 xl:flex 2xl:gap-7">
-            {navItems.map((item) => {
-              const isActive = activeSection === item.id
+          {/* Zona direita: navegação restante + CTA + gatilho do menu mobile */}
+          <div className="flex shrink-0 items-center justify-self-end gap-6">
+            <nav aria-label="Navegação secundária" className="hidden items-center gap-6 xl:flex">
+              {rightNav.map(renderNavLink)}
+            </nav>
 
-              return (
-                <a
-                  key={item.id}
-                  href={item.href}
-                  aria-current={isActive ? 'location' : undefined}
-                  className={cn(
-                    'relative py-2 text-[11px] font-semibold uppercase tracking-[0.13em] transition-colors duration-300',
-                    onDark
-                      ? 'text-parchment/75 hover:text-parchment'
-                      : 'text-ink/75 hover:text-clay',
-                    isActive && (onDark ? 'text-parchment' : 'text-clay'),
-                  )}
-                >
-                  {item.label}
-                  <span
-                    aria-hidden="true"
-                    className={cn(
-                      'absolute -bottom-0.5 left-0 h-px bg-current transition-all duration-300',
-                      isActive ? 'w-full' : 'w-0',
-                    )}
-                  />
-                </a>
-              )
-            })}
-          </nav>
-
-          <div className="flex shrink-0 items-center gap-3">
             <a
               href="#contribua"
               aria-current={activeSection === 'contribua' ? 'location' : undefined}
               className={cn(
-                'hidden items-center gap-2 rounded-sm border px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] transition duration-300 xl:inline-flex',
+                'hidden items-center rounded-full px-6 py-2.5 text-[11px] font-medium tracking-[0.06em] transition duration-300 xl:inline-flex',
                 onDark
-                  ? 'border-parchment/35 text-parchment hover:bg-parchment hover:text-forest-deep'
-                  : 'border-ink/25 text-ink hover:bg-ink hover:text-parchment',
-                activeSection === 'contribua' &&
-                  (onDark
-                    ? 'border-copper-light bg-parchment/15 ring-1 ring-copper-light/50'
-                    : 'border-clay bg-clay text-cream hover:bg-clay-dark'),
+                  ? 'bg-parchment text-forest-deep hover:bg-cream'
+                  : 'bg-forest text-cream hover:bg-forest-deep',
+                activeSection === 'contribua' && 'ring-2 ring-copper-light ring-offset-2 ring-offset-transparent',
               )}
             >
               Contribua
-              <ArrowUpRight size={13} strokeWidth={1.8} aria-hidden="true" />
             </a>
 
             <button
@@ -149,11 +158,11 @@ export function Header() {
               aria-controls="menu-mobile"
               aria-label={menuOpen ? 'Fechar menu' : 'Abrir menu'}
               className={cn(
-                'inline-flex h-11 w-11 items-center justify-center rounded-sm border transition duration-300 xl:hidden',
+                'inline-flex h-11 w-11 items-center justify-center rounded-full border transition duration-300 xl:hidden',
                 menuOpen && 'invisible',
                 onDark
-                  ? 'border-parchment/30 text-parchment hover:bg-parchment/10'
-                  : 'border-ink/20 text-ink hover:bg-ink/5',
+                  ? 'border-parchment/50 text-parchment hover:bg-parchment/10'
+                  : 'border-ink/55 text-ink hover:bg-ink/5',
               )}
             >
               {menuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
@@ -198,7 +207,7 @@ export function Header() {
             <button
               type="button"
               onClick={closeMenu}
-              className="inline-flex items-center gap-2 rounded-sm border border-parchment/25 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-parchment/85 transition hover:border-parchment/60 hover:text-parchment"
+              className="inline-flex items-center gap-2 rounded-full border border-parchment/50 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-parchment/85 transition hover:border-parchment/60 hover:text-parchment"
             >
               Fechar
               <X size={14} aria-hidden="true" />
@@ -233,7 +242,7 @@ export function Header() {
                 <a
                   href="#contribua"
                   onClick={() => setMenuOpen(false)}
-                  className="group mt-5 flex items-center justify-between gap-4 rounded-sm bg-clay px-5 py-4 text-parchment transition hover:bg-clay-dark"
+                  className="group mt-5 flex items-center justify-between gap-4 rounded-full bg-parchment px-6 py-4 text-forest-deep transition hover:bg-cream"
                 >
                   <span className="text-[11px] font-semibold uppercase tracking-[0.16em]">
                     Contribua com o Museu

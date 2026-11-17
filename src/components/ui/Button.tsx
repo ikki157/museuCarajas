@@ -10,7 +10,7 @@ const variants: Record<ButtonVariant, string> = {
   primary: 'bg-forest text-cream hover:bg-forest-deep',
   light: 'bg-parchment text-forest-deep hover:bg-cream',
   'outline-light':
-    'border border-parchment/35 text-parchment hover:border-parchment hover:bg-parchment/10',
+    'border border-parchment/55 text-parchment hover:border-parchment hover:bg-parchment/10',
 }
 
 export function buttonStyles(variant: ButtonVariant = 'primary', className?: string): string {

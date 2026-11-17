@@ -4,6 +4,8 @@ type LogoProps = {
   tone?: 'light' | 'dark'
   className?: string
   compact?: boolean
+  /** 'wordmark': marca tipográfica editorial, sem símbolo (cabeçalho Sylvan). */
+  variant?: 'default' | 'wordmark'
 }
 
 export function LogoMark({ className }: { className?: string }) {
@@ -26,7 +28,26 @@ export function LogoMark({ className }: { className?: string }) {
   )
 }
 
-export function Logo({ tone = 'dark', className, compact = false }: LogoProps) {
+export function Logo({ tone = 'dark', className, compact = false, variant = 'default' }: LogoProps) {
+  if (variant === 'wordmark') {
+    return (
+      <span
+        className={cn(
+          'inline-flex flex-col items-start text-left xl:items-center xl:text-center',
+          tone === 'light' ? 'text-parchment' : 'text-ink',
+          className,
+        )}
+      >
+        <span className="text-[10.5px] font-medium uppercase tracking-[0.26em] opacity-85">
+          Museu Municipal
+        </span>
+        <span className="display mt-1 text-[20px] font-medium leading-none tracking-[-0.015em] sm:text-[24px]">
+          Hilmar Harry Kluck<span className="opacity-70">.</span>
+        </span>
+      </span>
+    )
+  }
+
   return (
     <span
       className={cn(

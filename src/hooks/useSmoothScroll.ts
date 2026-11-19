@@ -2,6 +2,12 @@ import { useEffect } from 'react'
 import Lenis from 'lenis'
 import { gsap, ScrollTrigger } from '../lib/gsap'
 
+let activeLenisInstance: Lenis | null = null
+
+export function getActiveLenis(): Lenis | null {
+  return activeLenisInstance
+}
+
 export function useSmoothScroll(): void {
   useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
@@ -25,6 +31,7 @@ export function useSmoothScroll(): void {
       if (lenis) {
         lenis.destroy()
         lenis = null
+        activeLenisInstance = null
         document.documentElement.style.scrollBehavior = previousHtmlScrollBehavior
       }
     }
@@ -50,11 +57,19 @@ export function useSmoothScroll(): void {
         return
       }
 
-      const anchor = (event.target as Element | null)?.closest<HTMLAnchorElement>('a[href^="#"]')
+      const anchor = (event.target as Element | null)?.closest<HTMLAnchorElement>(
+        'a[href^="#"], a[href^="/#"]',
+      )
       if (!anchor) return
 
-      const href = anchor.getAttribute('href')
-      if (!href || href === '#') return
+      const rawHref = anchor.getAttribute('href')
+      if (!rawHref) return
+
+      const isRootHashOnOtherRoute = rawHref.startsWith('/#') && window.location.pathname !== '/'
+      if (isRootHashOnOtherRoute) return
+
+      const href = rawHref.startsWith('/#') ? rawHref.slice(1) : rawHref
+      if (href === '#') return
 
       const targetId = href.slice(1)
       const target = document.getElementById(targetId)
@@ -62,7 +77,7 @@ export function useSmoothScroll(): void {
 
       event.preventDefault()
 
-      window.history.pushState(null, '', href)
+      window.history.pushState(null, '', rawHref.startsWith('/#') ? rawHref : href)
 
       if (href === '#conteudo') {
         target.setAttribute('tabindex', '-1')
@@ -108,6 +123,7 @@ export function useSmoothScroll(): void {
         smoothWheel: true,
       })
       lenis = instance
+      activeLenisInstance = instance
 
       instance.on('scroll', ScrollTrigger.update)
 

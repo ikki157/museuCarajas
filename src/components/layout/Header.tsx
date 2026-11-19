@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowUpRight, MapPin, Menu, X } from 'lucide-react'
+import { Link, useLocation } from 'react-router-dom'
 import { navItems, sectionIds, visit } from '../../data/content'
 import { useActiveSection } from '../../hooks/useActiveSection'
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock'
@@ -10,6 +11,7 @@ import { cn } from '../../lib/utils'
 import { Logo } from '../ui/Logo'
 
 export function Header() {
+  const { pathname } = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
   const scrolled = useScrolled(28)
   const activeSection = useActiveSection(sectionIds)
@@ -17,7 +19,8 @@ export function Header() {
   const panelRef = useRef<HTMLDivElement>(null)
   const toggleRef = useRef<HTMLButtonElement>(null)
 
-  const onDark = menuOpen || !scrolled
+  const isContributePage = pathname === '/contribua'
+  const onDark = menuOpen || (!scrolled && !isContributePage)
 
   useBodyScrollLock(menuOpen)
   useFocusTrap(menuOpen, panelRef)
@@ -64,13 +67,16 @@ export function Header() {
   const rightNav = desktopNav.slice(3)
 
   const renderNavLink = (item: (typeof navItems)[number]) => {
-    const isActive = activeSection === item.id
+    const isRouteLink = item.href === '/contribua'
+    const isActive = isRouteLink
+      ? isContributePage
+      : !isContributePage && activeSection === item.id
 
     return (
-      <a
+      <Link
         key={item.id}
-        href={item.href}
-        aria-current={isActive ? 'location' : undefined}
+        to={item.href}
+        aria-current={isActive ? (isRouteLink ? 'page' : 'location') : undefined}
         className={cn(
           'relative whitespace-nowrap py-2 text-[10.5px] font-semibold uppercase tracking-[0.18em] transition-colors duration-300',
           onDark ? 'text-parchment/85 hover:text-parchment' : 'text-ink/85 hover:text-forest',
@@ -85,7 +91,7 @@ export function Header() {
             isActive ? 'w-full' : 'w-0',
           )}
         />
-      </a>
+      </Link>
     )
   }
 
@@ -109,7 +115,7 @@ export function Header() {
           onDark ? 'text-parchment' : 'text-ink',
           menuOpen
             ? 'border-b border-parchment/10 bg-forest-deep'
-            : scrolled
+            : scrolled || isContributePage
               ? 'border-b border-line/70 bg-parchment/95 shadow-[0_10px_30px_-24px_rgba(16,33,25,0.5)] backdrop-blur-md'
               : 'border-b border-transparent bg-transparent',
         )}
@@ -121,14 +127,14 @@ export function Header() {
           </nav>
 
           {/* Zona central: marca */}
-          <a
-            href="#inicio"
+          <Link
+            to="/#inicio"
             aria-label="Museu Carajás — ir para o início"
             onClick={() => setMenuOpen(false)}
             className="shrink-0"
           >
             <Logo tone={onDark ? 'light' : 'dark'} variant="wordmark" />
-          </a>
+          </Link>
 
           {/* Zona direita: navegação restante + CTA + gatilho do menu mobile */}
           <div className="flex shrink-0 items-center justify-self-end gap-6">
@@ -136,19 +142,19 @@ export function Header() {
               {rightNav.map(renderNavLink)}
             </nav>
 
-            <a
-              href="#contribua"
-              aria-current={activeSection === 'contribua' ? 'location' : undefined}
+            <Link
+              to="/contribua"
+              aria-current={isContributePage ? 'page' : undefined}
               className={cn(
                 'hidden items-center rounded-full px-6 py-2.5 text-[11px] font-medium tracking-[0.06em] transition duration-300 xl:inline-flex',
                 onDark
                   ? 'bg-parchment text-forest-deep hover:bg-cream'
                   : 'bg-forest text-cream hover:bg-forest-deep',
-                activeSection === 'contribua' && 'ring-2 ring-copper-light ring-offset-2 ring-offset-transparent',
+                isContributePage && 'ring-2 ring-forest/40 ring-offset-2 ring-offset-parchment',
               )}
             >
               Contribua
-            </a>
+            </Link>
 
             <button
               ref={toggleRef}
@@ -218,8 +224,8 @@ export function Header() {
             <ul>
               {navItems.map((item) => (
                 <li key={item.id}>
-                  <a
-                    href={item.href}
+                  <Link
+                    to={item.href}
                     onClick={() => setMenuOpen(false)}
                     className="group flex items-baseline gap-4 border-b border-parchment/10 py-4"
                   >
@@ -232,12 +238,12 @@ export function Header() {
                       className="ml-auto shrink-0 text-parchment/60 transition group-hover:text-copper-light"
                       aria-hidden="true"
                     />
-                  </a>
+                  </Link>
                 </li>
               ))}
               <li>
-                <a
-                  href="#contribua"
+                <Link
+                  to="/contribua"
                   onClick={() => setMenuOpen(false)}
                   className="group mt-5 flex items-center justify-between gap-4 rounded-full bg-parchment px-6 py-4 text-forest-deep transition hover:bg-cream"
                 >
@@ -250,7 +256,7 @@ export function Header() {
                     className="transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                     aria-hidden="true"
                   />
-                </a>
+                </Link>
               </li>
             </ul>
 

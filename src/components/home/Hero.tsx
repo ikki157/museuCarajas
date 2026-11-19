@@ -133,7 +133,7 @@ export function Hero() {
               </ButtonLink>
             </div>
             <div className="hero-cta">
-              <ButtonLink href="#contribua" variant="outline-light">
+              <ButtonLink href="/contribua" variant="outline-light">
                 Enviar um registro
                 <ArrowUpRight
                   size={15}

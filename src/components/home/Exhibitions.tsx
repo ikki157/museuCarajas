@@ -175,7 +175,7 @@ export function Exhibitions() {
                 recebe doações voluntárias.
               </p>
 
-              <ButtonLink href="#contribua" variant="primary" className="mt-7">
+              <ButtonLink href="/contribua" variant="primary" className="mt-7">
                 Contribuir com o acervo
                 <ArrowRight
                   size={14}

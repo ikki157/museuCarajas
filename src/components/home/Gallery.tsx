@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import {
   AlertCircle,
   ArrowUpRight,
@@ -43,7 +44,7 @@ const MEDIA_BADGES: Record<GaleriaMediaType, string> = {
 }
 
 const statusCopy: Record<GaleriaStatus, { label: string; dot: string }> = {
-  live: { label: 'Atualização em tempo real', dot: 'bg-[#7d9b69]' },
+  live: { label: 'Museu Memórias Vivas', dot: 'bg-[#7d9b69]' },
   connecting: { label: 'Conectando ao acervo digital', dot: 'bg-copper' },
   offline: { label: 'Conexão em tempo real indisponível', dot: 'bg-clay' },
   unconfigured: { label: 'Acervo digital não configurado', dot: 'bg-stone/50' },
@@ -649,8 +650,8 @@ export function Gallery() {
             Legendas e metadados sujeitos à validação curatorial do Museu Carajás. Acervo colaborativo
             aberto a fotografias, vídeos e documentos históricos.
           </p>
-          <a
-            href="#contribua"
+          <Link
+            to="/contribua"
             className="group inline-flex shrink-0 items-center gap-2 font-semibold uppercase tracking-[0.14em] text-clay transition hover:text-clay-dark"
           >
             Enviar um registro
@@ -660,7 +661,7 @@ export function Gallery() {
               className="transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
               aria-hidden="true"
             />
-          </a>
+          </Link>
         </div>
       </div>
 

@@ -1,16 +1,72 @@
+import { useLayoutEffect } from 'react'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { Footer } from './components/layout/Footer'
 import { Header } from './components/layout/Header'
-import { AboutMuseum } from './components/home/AboutMuseum'
-import { Collection } from './components/home/Collection'
-import { Contribute } from './components/home/Contribute'
-import { Education } from './components/home/Education'
-import { Exhibitions } from './components/home/Exhibitions'
-import { Gallery } from './components/home/Gallery'
-import { Hero } from './components/home/Hero'
-import { Visit } from './components/home/Visit'
-import { ParallaxBand } from './components/ui/ParallaxBand'
 import { Preloader } from './components/ui/Preloader'
-import { useSmoothScroll } from './hooks/useSmoothScroll'
+import { getActiveLenis, useSmoothScroll } from './hooks/useSmoothScroll'
+import { ScrollTrigger } from './lib/gsap'
+import { ContributePage } from './pages/ContributePage'
+import { HomePage } from './pages/HomePage'
+
+function ScrollManager() {
+  const { pathname, hash } = useLocation()
+
+  useLayoutEffect(() => {
+    if (pathname === '/' && hash) {
+      const targetId = hash.slice(1)
+      let timerId: number | undefined
+
+      const rafOne = window.requestAnimationFrame(() => {
+        const rafTwo = window.requestAnimationFrame(() => {
+          const target = document.getElementById(targetId)
+          if (!target) return
+
+          const lenis = getActiveLenis()
+          if (lenis) {
+            lenis.resize()
+            if (document.body.style.overflow !== 'hidden') {
+              lenis.start()
+            }
+            lenis.scrollTo(target, {
+              offset: hash === '#inicio' ? 0 : -84,
+              duration: 1.15,
+            })
+          } else {
+            target.scrollIntoView({ behavior: 'smooth' })
+          }
+
+          ScrollTrigger.refresh()
+        })
+        timerId = rafTwo
+      })
+
+      return () => {
+        window.cancelAnimationFrame(rafOne)
+        if (timerId !== undefined) window.cancelAnimationFrame(timerId)
+      }
+    }
+
+    const lenis = getActiveLenis()
+    if (lenis) {
+      lenis.stop()
+      lenis.scrollTo(0, { immediate: true, force: true })
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+      if (document.body.style.overflow !== 'hidden') {
+        lenis.start()
+      }
+    } else {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+    }
+
+    const rafId = window.requestAnimationFrame(() => {
+      getActiveLenis()?.resize()
+      ScrollTrigger.refresh()
+    })
+    return () => window.cancelAnimationFrame(rafId)
+  }, [pathname, hash])
+
+  return null
+}
 
 export default function App() {
   useSmoothScroll()
@@ -18,26 +74,14 @@ export default function App() {
   return (
     <div className="min-h-screen bg-parchment">
       <Preloader />
+      <ScrollManager />
       <Header />
       <main id="conteudo">
-        <Hero />
-        <Gallery />
-        <Collection />
-        <Contribute />
-        <ParallaxBand
-          src="/images/museu/museu-03.jpg"
-          eyebrow="Memória viva"
-          quote="Cada objeto guarda|uma voz da Amazônia."
-        />
-        <Exhibitions />
-        <AboutMuseum />
-        <ParallaxBand
-          src="/images/museu/museu-05.jpg"
-          eyebrow="Conhecer para preservar"
-          quote="Quem conhece sua história|cuida do seu território."
-        />
-        <Education />
-        <Visit />
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/contribua" element={<ContributePage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </main>
       <Footer />
     </div>

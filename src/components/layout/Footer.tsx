@@ -1,4 +1,5 @@
 import { ArrowUp, ArrowUpRight, Mail, MapPin } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { museum, navItems, photoCredit, sourceUrl, visit } from '../../data/content'
 import { Logo } from '../ui/Logo'
 
@@ -10,15 +11,15 @@ export function Footer() {
       <div className="site-container pb-10 pt-20 lg:pt-28">
         <div className="grid gap-14 border-b border-parchment/15 pb-16 lg:grid-cols-12 lg:gap-8">
           <div className="lg:col-span-5">
-            <a href="#inicio" aria-label="Voltar ao início" className="inline-block">
+            <Link to="/#inicio" aria-label="Voltar ao início" className="inline-block">
               <Logo tone="light" />
-            </a>
+            </Link>
             <p className="mt-7 max-w-sm text-[14.5px] leading-relaxed text-parchment/75">
               Um espaço dedicado à memória, à arqueologia e à riqueza cultural de Parauapebas e da
               região de Carajás.
             </p>
-            <a
-              href="#visite"
+            <Link
+              to="/#visite"
               className="group mt-7 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-copper-light transition hover:text-parchment"
             >
               Planeje sua visita
@@ -28,7 +29,7 @@ export function Footer() {
                 className="transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                 aria-hidden="true"
               />
-            </a>
+            </Link>
           </div>
 
           <div className="lg:col-span-3">
@@ -36,12 +37,12 @@ export function Footer() {
             <ul className="mt-5 grid grid-cols-2 gap-x-4 gap-y-2.5 text-[13.5px] lg:grid-cols-1">
               {navItems.map((item) => (
                 <li key={item.id}>
-                  <a
-                    href={item.href}
+                  <Link
+                    to={item.href}
                     className="text-parchment/80 transition hover:text-copper-light"
                   >
                     {item.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -93,8 +94,8 @@ export function Footer() {
             </p>
           </div>
           <div className="flex items-start lg:col-span-4 lg:justify-end">
-            <a
-              href="#inicio"
+            <Link
+              to="/#inicio"
               className="group inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-parchment/75 transition hover:text-parchment"
             >
               Voltar ao topo
@@ -104,7 +105,7 @@ export function Footer() {
                 className="transition group-hover:-translate-y-0.5"
                 aria-hidden="true"
               />
-            </a>
+            </Link>
           </div>
         </div>
 

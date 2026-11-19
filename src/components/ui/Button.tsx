@@ -1,4 +1,5 @@
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import { cn } from '../../lib/utils'
 
 export type ButtonVariant = 'primary' | 'light' | 'outline-light'
@@ -26,10 +27,19 @@ export function ButtonLink({
   variant = 'primary',
   className,
   children,
+  href,
   ...props
 }: ButtonLinkProps) {
+  if (href && href.startsWith('/') && !href.startsWith('//')) {
+    return (
+      <Link to={href} className={buttonStyles(variant, className)} {...props}>
+        {children}
+      </Link>
+    )
+  }
+
   return (
-    <a className={buttonStyles(variant, className)} {...props}>
+    <a href={href} className={buttonStyles(variant, className)} {...props}>
       {children}
     </a>
   )

@@ -1,8 +1,17 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { Link } from 'react-router-dom'
 import {
   AlertCircle,
   ArrowUpRight,
+  ChevronLeft,
+  ChevronRight,
   FileText,
   ImageOff,
   Maximize2,
@@ -11,8 +20,9 @@ import {
   Search,
   X,
 } from 'lucide-react'
-import { useGaleria, type GaleriaStatus } from '../../hooks/useGaleria'
+import { useGaleria } from '../../hooks/useGaleria'
 import {
+  filterGaleriaItems,
   getGaleriaImageUrl,
   getGaleriaThumbnailUrl,
   type GaleriaItem,
@@ -43,13 +53,6 @@ const MEDIA_BADGES: Record<GaleriaMediaType, string> = {
   documento: 'Documento',
 }
 
-const statusCopy: Record<GaleriaStatus, { label: string; dot: string }> = {
-  live: { label: 'Museu Memórias Vivas', dot: 'bg-[#7d9b69]' },
-  connecting: { label: 'Conectando ao acervo digital', dot: 'bg-copper' },
-  offline: { label: 'Conexão em tempo real indisponível', dot: 'bg-clay' },
-  unconfigured: { label: 'Acervo digital não configurado', dot: 'bg-stone/50' },
-}
-
 function getInitialMediaFilter(): MediaFilter {
   if (typeof window === 'undefined') return ALL_MEDIA
   const param = new URLSearchParams(window.location.search).get('midia')?.trim()
@@ -59,7 +62,13 @@ function getInitialMediaFilter(): MediaFilter {
   return ALL_MEDIA
 }
 
-function GalleryCard({ item, onOpen }: { item: GaleriaItem; onOpen: () => void }) {
+function GalleryCard({
+  item,
+  onOpen,
+}: {
+  item: GaleriaItem
+  onOpen: () => void
+}) {
   const mediaUrl = getGaleriaImageUrl(item)
   const thumbnailUrl = getGaleriaThumbnailUrl(item)
   const canOpen = Boolean(mediaUrl || item.midia_externa_url)
@@ -72,28 +81,32 @@ function GalleryCard({ item, onOpen }: { item: GaleriaItem; onOpen: () => void }
         : `Ampliar fotografia: ${item.titulo}`
 
   return (
-    <figure className="gallery-card-item group mb-5 break-inside-avoid">
+    <figure className="gallery-card-item group w-[84vw] shrink-0 snap-start sm:w-[360px] lg:w-[400px]">
       <button
         type="button"
         onClick={onOpen}
         disabled={!canOpen}
         aria-label={actionLabel}
-        className="relative block aspect-[16/10] w-full overflow-hidden rounded-[28px] bg-sand-deep text-left disabled:cursor-default"
+        className="relative block aspect-[4/3] w-full overflow-hidden rounded-[28px] bg-sand-deep text-left disabled:cursor-default"
       >
         {item.tipo_midia === 'video' ? (
           <>
             {thumbnailUrl ? (
               <img
                 src={thumbnailUrl}
-                alt={item.descricao ? `${item.titulo}. ${item.descricao}` : item.titulo}
-                width={1280}
-                height={720}
+                alt={
+                  item.descricao
+                    ? `${item.titulo}. ${item.descricao}`
+                    : item.titulo
+                }
+                width={1200}
+                height={900}
                 loading="lazy"
                 decoding="async"
                 className="h-full w-full object-cover transition duration-700 ease-museum group-hover:scale-[1.03]"
               />
             ) : (
-              <div className="flex h-full w-full flex-col justify-end bg-[radial-gradient(circle_at_top_right,rgba(79,102,88,0.45),rgba(21,34,28,0.98))] p-5 text-parchment">
+              <div className="flex h-full w-full flex-col justify-end bg-[radial-gradient(circle_at_top_right,rgba(79,102,88,0.45),rgba(21,34,28,0.98))] p-6 text-parchment">
                 <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-copper-light">
                   {item.formato === 'youtube' || item.formato === 'vimeo'
                     ? item.formato
@@ -113,11 +126,16 @@ function GalleryCard({ item, onOpen }: { item: GaleriaItem; onOpen: () => void }
               aria-hidden="true"
               className="absolute left-1/2 top-1/2 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-parchment/95 text-forest-deep shadow-lg transition duration-300 group-hover:scale-105"
             >
-              <Play size={18} strokeWidth={1.8} fill="currentColor" className="ml-0.5" />
+              <Play
+                size={18}
+                strokeWidth={1.8}
+                fill="currentColor"
+                className="ml-0.5"
+              />
             </span>
           </>
         ) : item.tipo_midia === 'documento' ? (
-          <div className="flex h-full w-full flex-col justify-between border border-stone/25 bg-cream p-5 text-ink transition duration-500 group-hover:bg-parchment">
+          <div className="flex h-full w-full flex-col justify-between border border-line/80 bg-cream p-6 text-ink transition duration-500 group-hover:bg-parchment/80">
             <div className="flex items-center gap-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-forest text-parchment">
                 <FileText size={18} strokeWidth={1.6} aria-hidden="true" />
@@ -127,26 +145,34 @@ function GalleryCard({ item, onOpen }: { item: GaleriaItem; onOpen: () => void }
                   Documento Histórico
                 </p>
                 {item.periodo_estimado ? (
-                  <p className="truncate text-xs text-forest">{item.periodo_estimado}</p>
+                  <p className="truncate text-xs text-forest">
+                    {item.periodo_estimado}
+                  </p>
                 ) : null}
               </div>
             </div>
 
-            <div className="mt-3">
-              <p className="display line-clamp-2 text-[17px] font-medium leading-snug text-forest">
+            <div>
+              <p className="display line-clamp-2 text-[19px] font-medium leading-snug text-forest">
                 {item.titulo}
               </p>
               {item.localizacao ? (
-                <p className="mt-1 truncate text-xs text-stone">{item.localizacao}</p>
+                <p className="mt-1.5 truncate text-xs text-stone">
+                  {item.localizacao}
+                </p>
               ) : null}
             </div>
           </div>
         ) : mediaUrl ? (
           <img
             src={mediaUrl}
-            alt={item.descricao ? `${item.titulo}. ${item.descricao}` : item.titulo}
-            width={1280}
-            height={720}
+            alt={
+              item.descricao
+                ? `${item.titulo}. ${item.descricao}`
+                : item.titulo
+            }
+            width={1200}
+            height={900}
             loading="lazy"
             decoding="async"
             className="h-full w-full object-cover transition duration-700 ease-museum group-hover:scale-[1.03]"
@@ -154,42 +180,46 @@ function GalleryCard({ item, onOpen }: { item: GaleriaItem; onOpen: () => void }
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-sand text-stone">
             <ImageOff size={24} strokeWidth={1.4} aria-hidden="true" />
-            <span className="text-xs uppercase tracking-[0.16em]">Mídia indisponível</span>
+            <span className="text-xs uppercase tracking-[0.16em]">
+              Mídia indisponível
+            </span>
           </div>
         )}
 
-        <span className="absolute right-4 top-4 rounded-full bg-forest-deep/80 px-3 py-1.5 text-xs font-medium tracking-[0.06em] text-parchment backdrop-blur-sm">
-          {item.tipo_midia === 'fotografia' ? item.formato : MEDIA_BADGES[item.tipo_midia]}
+        <span className="absolute right-4 top-4 rounded-full bg-forest-deep/80 px-3 py-1 text-xs font-medium tracking-[0.04em] text-cream backdrop-blur-sm">
+          {item.tipo_midia === 'fotografia'
+            ? item.formato.toUpperCase()
+            : MEDIA_BADGES[item.tipo_midia]}
         </span>
 
         {item.tipo_midia === 'fotografia' && mediaUrl ? (
           <span
             aria-hidden="true"
-            className="absolute bottom-3 right-3 flex h-9 w-9 translate-y-1 items-center justify-center rounded-full bg-parchment/90 text-forest opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100"
+            className="absolute bottom-3.5 right-3.5 flex h-9 w-9 translate-y-1 items-center justify-center rounded-full bg-parchment/90 text-forest opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100"
           >
             <Maximize2 size={14} strokeWidth={1.7} aria-hidden="true" />
           </span>
         ) : null}
       </button>
 
-      <figcaption className="pt-3.5">
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-clay">
+      <figcaption className="pt-4">
+        <div className="flex items-center justify-between gap-3 text-xs text-stone">
+          <span className="truncate font-medium text-forest">
             {item.categoria}
-          </p>
-          <p className="shrink-0 text-xs text-stone">
+          </span>
+          <span className="shrink-0">
             {item.periodo_estimado ?? formatDate(item.criado_em)}
-          </p>
+          </span>
         </div>
-        <h3 className="display mt-1.5 text-[19px] font-medium leading-tight text-forest">
+        <h3 className="display mt-1.5 line-clamp-1 text-[19px] font-medium leading-tight text-forest">
           {item.titulo}
         </h3>
         {item.descricao ? (
-          <p className="mt-1.5 line-clamp-2 text-[12.5px] leading-relaxed text-stone">
+          <p className="mt-1.5 line-clamp-2 text-[13px] leading-relaxed text-stone">
             {item.descricao}
           </p>
         ) : null}
-        <p className="mt-2 text-xs leading-relaxed text-stone">
+        <p className="mt-2 truncate text-xs text-stone/90">
           {item.localizacao ? `${item.localizacao} · ` : ''}
           {item.credito ?? 'Acervo Museu Carajás'}
         </p>
@@ -200,16 +230,21 @@ function GalleryCard({ item, onOpen }: { item: GaleriaItem; onOpen: () => void }
 
 function GallerySkeleton() {
   return (
-    <div className="columns-1 gap-5 sm:columns-2 lg:columns-3" role="status" aria-live="polite">
-      {[280, 360, 320, 420, 300, 380].map((height) => (
-        <div key={height} aria-hidden="true" className="mb-5 break-inside-avoid">
-          <div
-            className="animate-shimmer w-full rounded-[28px] bg-[linear-gradient(90deg,#c3cbbd_25%,#dce2d6_50%,#c3cbbd_75%)]"
-            style={{ height }}
-          />
-          <div className="mt-3 h-2.5 w-20 animate-pulse rounded bg-sand" />
-          <div className="mt-2 h-4 w-2/3 animate-pulse rounded bg-sand" />
-          <div className="mt-2 h-2.5 w-1/3 animate-pulse rounded bg-sand" />
+    <div
+      className="no-scrollbar flex gap-6 overflow-x-auto pb-4"
+      role="status"
+      aria-live="polite"
+    >
+      {[0, 1, 2, 3].map((slot) => (
+        <div
+          key={slot}
+          aria-hidden="true"
+          className="w-[84vw] shrink-0 sm:w-[360px] lg:w-[400px]"
+        >
+          <div className="animate-shimmer aspect-[4/3] w-full rounded-[28px] bg-[linear-gradient(90deg,#c3cbbd_25%,#dce2d6_50%,#c3cbbd_75%)]" />
+          <div className="mt-4 h-3 w-24 animate-pulse rounded bg-sand" />
+          <div className="mt-2 h-5 w-3/4 animate-pulse rounded bg-sand" />
+          <div className="mt-2 h-3 w-1/2 animate-pulse rounded bg-sand" />
         </div>
       ))}
       <span className="sr-only">Carregando registros do acervo</span>
@@ -218,17 +253,25 @@ function GallerySkeleton() {
 }
 
 export function Gallery() {
-  const { items, loading, error, status, refresh } = useGaleria()
-  const [selectedMediaType, setSelectedMediaType] = useState<MediaFilter>(getInitialMediaFilter)
+  const { items, loading, error, refresh } = useGaleria()
+  const [selectedMediaType, setSelectedMediaType] =
+    useState<MediaFilter>(getInitialMediaFilter)
   const [selectedCategory, setSelectedCategory] = useState(() => {
     if (typeof window === 'undefined') return ALL_CATEGORIES
-    return new URLSearchParams(window.location.search).get('categoria')?.trim() || ALL_CATEGORIES
+    return (
+      new URLSearchParams(window.location.search).get('categoria')?.trim() ||
+      ALL_CATEGORIES
+    )
   })
   const [searchQuery, setSearchQuery] = useState('')
   const [lightboxId, setLightboxId] = useState<string | null>(() => {
     if (typeof window === 'undefined') return null
     return new URLSearchParams(window.location.search).get('foto')?.trim() || null
   })
+  const [canScrollPrev, setCanScrollPrev] = useState(false)
+  const [canScrollNext, setCanScrollNext] = useState(false)
+
+  const carouselRef = useRef<HTMLDivElement>(null)
 
   const syncGalleryUrl = (
     nextMediaType: MediaFilter,
@@ -256,7 +299,11 @@ export function Gallery() {
       url.searchParams.delete('foto')
     }
 
-    window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`)
+    window.history.replaceState(
+      null,
+      '',
+      `${url.pathname}${url.search}${url.hash}`,
+    )
   }
 
   const categories = useMemo(
@@ -267,35 +314,14 @@ export function Gallery() {
     [items],
   )
 
-  const normalizedSearch = searchQuery.trim().toLowerCase()
-
   const filteredItems = useMemo(
     () =>
-      items.filter((item) => {
-        if (selectedMediaType !== ALL_MEDIA && item.tipo_midia !== selectedMediaType) {
-          return false
-        }
-        if (selectedCategory !== ALL_CATEGORIES && item.categoria !== selectedCategory) {
-          return false
-        }
-        if (!normalizedSearch) return true
-
-        const haystack = [
-          item.titulo,
-          item.descricao,
-          item.categoria,
-          item.periodo_estimado,
-          item.localizacao,
-          item.credito,
-          ...item.tags,
-        ]
-          .filter(Boolean)
-          .join(' ')
-          .toLowerCase()
-
-        return haystack.includes(normalizedSearch)
+      filterGaleriaItems(items, {
+        query: searchQuery,
+        mediaType: selectedMediaType,
+        category: selectedCategory,
       }),
-    [items, normalizedSearch, selectedCategory, selectedMediaType],
+    [items, searchQuery, selectedCategory, selectedMediaType],
   )
 
   const lightboxIndex = lightboxId
@@ -304,7 +330,10 @@ export function Gallery() {
 
   useEffect(() => {
     if (loading || items.length === 0) return
-    if (selectedCategory !== ALL_CATEGORIES && !categories.includes(selectedCategory)) {
+    if (
+      selectedCategory !== ALL_CATEGORIES &&
+      !categories.includes(selectedCategory)
+    ) {
       setSelectedCategory(ALL_CATEGORIES)
     }
   }, [categories, items.length, loading, selectedCategory])
@@ -314,50 +343,142 @@ export function Gallery() {
     if (lightboxId && lightboxIndex === -1) setLightboxId(null)
   }, [items.length, lightboxId, lightboxIndex, loading])
 
-  const gridRef = useRef<HTMLDivElement>(null)
-  const statusInfo = statusCopy[status]
+  const updateScrollButtons = useCallback(() => {
+    const el = carouselRef.current
+    if (!el) {
+      setCanScrollPrev(false)
+      setCanScrollNext(false)
+      return
+    }
+    const tolerance = 4
+    setCanScrollPrev(el.scrollLeft > tolerance)
+    setCanScrollNext(
+      el.scrollLeft + el.clientWidth < el.scrollWidth - tolerance,
+    )
+  }, [])
+
+  useEffect(() => {
+    const rafId = window.requestAnimationFrame(updateScrollButtons)
+    window.addEventListener('resize', updateScrollButtons)
+    return () => {
+      window.cancelAnimationFrame(rafId)
+      window.removeEventListener('resize', updateScrollButtons)
+    }
+  }, [filteredItems.length, loading, updateScrollButtons])
+
+  useEffect(() => {
+    const el = carouselRef.current
+    if (!el) return
+    el.style.scrollBehavior = ''
+    el.style.scrollSnapType = ''
+    el.scrollTo({ left: 0, behavior: 'smooth' })
+  }, [searchQuery, selectedMediaType, selectedCategory])
+
+  useEffect(() => {
+    const el = carouselRef.current
+    if (!el || loading || filteredItems.length === 0) return
+
+    const handleWheel = (event: WheelEvent) => {
+      if (el.scrollWidth <= el.clientWidth) return
+      if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return
+
+      const tolerance = 2
+      const atStart = el.scrollLeft <= tolerance
+      const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - tolerance
+      const shouldScrollHorizontally =
+        (event.deltaY > 0 && !atEnd) || (event.deltaY < 0 && !atStart)
+
+      if (!shouldScrollHorizontally) return
+
+      event.preventDefault()
+      event.stopPropagation()
+
+      const delta =
+        event.deltaMode === 1
+          ? event.deltaY * 32
+          : event.deltaMode === 2
+            ? event.deltaY * el.clientWidth
+            : event.deltaY
+
+      el.style.scrollBehavior = 'auto'
+      el.style.scrollSnapType = 'none'
+      el.scrollLeft += delta
+      updateScrollButtons()
+    }
+
+    const handleTouchStart = () => {
+      el.style.scrollSnapType = ''
+      el.style.scrollBehavior = ''
+    }
+
+    el.addEventListener('wheel', handleWheel, { passive: false })
+    el.addEventListener('touchstart', handleTouchStart, { passive: true })
+
+    return () => {
+      el.removeEventListener('wheel', handleWheel)
+      el.removeEventListener('touchstart', handleTouchStart)
+    }
+  }, [filteredItems.length, loading, updateScrollButtons])
+
+  const scrollCarousel = (direction: 'prev' | 'next') => {
+    const el = carouselRef.current
+    if (!el) return
+    el.style.scrollBehavior = ''
+    el.style.scrollSnapType = ''
+    const firstCard = el.querySelector<HTMLElement>('.gallery-card-item')
+    const styles = window.getComputedStyle(el)
+    const gap = Number.parseFloat(styles.columnGap || styles.gap || '24') || 24
+    const step = firstCard ? firstCard.getBoundingClientRect().width + gap : 400
+    el.scrollBy({
+      left: direction === 'next' ? step : -step,
+      behavior: 'smooth',
+    })
+  }
+
   const hasItems = items.length > 0
   const showFilters = isSupabaseConfigured || hasItems
   const hasActiveFilters =
     selectedMediaType !== ALL_MEDIA ||
     selectedCategory !== ALL_CATEGORIES ||
-    normalizedSearch.length > 0
+    searchQuery.trim().length > 0
 
   useLayoutEffect(() => {
-    const grid = gridRef.current
-    if (!grid || loading || filteredItems.length === 0) return
+    const carousel = carouselRef.current
+    if (!carousel || loading || filteredItems.length === 0) return
 
     const ctx = gsap.context(() => {
       const mm = gsap.matchMedia()
+      const cards = gsap.utils.toArray<HTMLElement>('.gallery-card-item')
+      if (!cards.length) return
 
       mm.add('(prefers-reduced-motion: reduce)', () => {
-        gsap.set('.gallery-card-item', { clearProps: 'all', opacity: 1, y: 0 })
+        gsap.set(cards, { clearProps: 'all', opacity: 1, y: 0 })
       })
 
       mm.add('(prefers-reduced-motion: no-preference)', () => {
-        const cards = gsap.utils.toArray<HTMLElement>('.gallery-card-item')
-        if (!cards.length) return
-
-        gsap.set(cards, { opacity: 0, y: 32 })
-        ScrollTrigger.batch(cards, {
-          start: 'top 90%',
-          once: true,
-          onEnter: (batch) => {
-            gsap.to(batch, {
-              opacity: 1,
-              y: 0,
-              duration: 0.75,
-              stagger: 0.08,
-              ease: 'power3.out',
-              overwrite: true,
-            })
+        gsap.fromTo(
+          cards,
+          { opacity: 0, y: 24 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.65,
+            stagger: 0.06,
+            ease: 'power3.out',
+            clearProps: 'opacity,transform',
+            scrollTrigger: {
+              trigger: carousel,
+              start: 'top 90%',
+              once: true,
+            },
           },
-        })
+        )
+        ScrollTrigger.refresh()
       })
-    }, gridRef)
+    }, carouselRef)
 
     return () => ctx.revert()
-  }, [filteredItems, loading])
+  }, [filteredItems.length, loading])
 
   return (
     <section
@@ -376,43 +497,32 @@ export function Gallery() {
               />
             </Reveal>
           </div>
-          <div className="lg:col-span-5 lg:pb-2">
+          <div className="lg:col-span-5 lg:pb-1">
             <Reveal delay={80}>
-              <div
-                role="status"
-                aria-live="polite"
-                className="inline-flex items-center gap-2.5 rounded-full border border-stone/45 bg-cream px-4 py-2"
-              >
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    'h-1.5 w-1.5 rounded-full',
-                    statusInfo.dot,
-                    status === 'live' && 'animate-soft-pulse',
-                  )}
-                />
-                <span className="text-xs font-semibold uppercase tracking-[0.14em] text-stone">
-                  {statusInfo.label}
-                </span>
-              </div>
-              <p className="mt-4 max-w-md text-[14.5px] leading-relaxed text-stone">
-                Fotografias, vídeos e documentos históricos reunidos e atualizados continuamente à
-                medida que novos registros são incorporados ao acervo.
+              <p className="max-w-md text-[15px] leading-relaxed text-stone">
+                Fotografias, vídeos e documentos históricos reunidos e
+                atualizados continuamente à medida que novos registros são
+                incorporados ao acervo.
               </p>
             </Reveal>
           </div>
         </div>
 
         {error && hasItems ? (
-          <div className="mt-8 flex flex-col gap-3 rounded-2xl border border-clay/25 bg-clay/5 px-5 py-3 text-[12px] text-clay sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-8 flex flex-col gap-3 rounded-2xl border border-line bg-cream px-5 py-3 text-[13px] text-ink sm:flex-row sm:items-center sm:justify-between">
             <p className="flex items-start gap-2">
-              <AlertCircle size={15} className="mt-0.5 shrink-0" aria-hidden="true" />
-              Não foi possível sincronizar agora. Os registros exibidos podem estar desatualizados.
+              <AlertCircle
+                size={15}
+                className="mt-0.5 shrink-0 text-forest"
+                aria-hidden="true"
+              />
+              Não foi possível sincronizar agora. Os registros exibidos podem
+              estar desatualizados.
             </p>
             <button
               type="button"
               onClick={refresh}
-              className="inline-flex shrink-0 items-center gap-1.5 font-semibold uppercase tracking-[0.12em] transition hover:text-clay-dark"
+              className="inline-flex shrink-0 items-center gap-1.5 text-xs font-medium text-forest transition hover:text-ink"
             >
               <RefreshCw size={13} aria-hidden="true" />
               Tentar novamente
@@ -421,20 +531,46 @@ export function Gallery() {
         ) : null}
 
         {showFilters ? (
-          <div className="mt-10 space-y-4 py-4">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="mt-10 border-b border-line/60 pb-6">
+            {/* Top toolbar row: Pill search + Media-type segmented tabs */}
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <div className="relative w-full lg:max-w-sm">
+                <label htmlFor="galeria-busca" className="sr-only">
+                  Buscar registros por título, período, local ou tag
+                </label>
+                <Search
+                  size={15}
+                  strokeWidth={1.75}
+                  aria-hidden="true"
+                  className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-stone/80"
+                />
+                <input
+                  id="galeria-busca"
+                  type="search"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="Buscar por título, década, local ou tag…"
+                  className="w-full rounded-full border border-line/70 bg-cream/85 py-2.5 pl-10 pr-10 text-[14px] text-ink transition-colors placeholder:text-stone/75 focus:border-forest focus:bg-cream focus:outline-none [&::-webkit-search-cancel-button]:appearance-none"
+                />
+                {searchQuery ? (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    aria-label="Limpar busca"
+                    className="absolute right-3 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-stone transition-colors hover:bg-parchment hover:text-ink"
+                  >
+                    <X size={14} strokeWidth={1.8} aria-hidden="true" />
+                  </button>
+                ) : null}
+              </div>
+
               <div
                 role="group"
                 aria-label="Filtrar galeria por tipo de mídia"
-                className="no-scrollbar flex gap-2 overflow-x-auto pb-0.5"
+                className="no-scrollbar inline-flex max-w-full items-center gap-1 overflow-x-auto rounded-full border border-line/70 bg-cream/65 p-1"
               >
                 {MEDIA_FILTERS.map((option) => {
                   const isActive = selectedMediaType === option.value
-                  const count =
-                    option.value === ALL_MEDIA
-                      ? items.length
-                      : items.filter((item) => item.tipo_midia === option.value).length
-
                   return (
                     <button
                       key={option.value}
@@ -446,55 +582,25 @@ export function Gallery() {
                         syncGalleryUrl(option.value, selectedCategory, null)
                       }}
                       className={cn(
-                        'shrink-0 rounded-full border px-4 py-2 text-xs font-medium tracking-[0.04em] transition',
+                        'shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-[13.5px] font-medium transition-colors',
                         isActive
-                          ? 'border-forest bg-forest text-parchment'
-                          : 'border-stone/45 text-stone hover:border-forest hover:text-forest',
+                          ? 'bg-forest text-cream'
+                          : 'text-stone hover:text-ink',
                       )}
                     >
                       {option.label}
-                      <span className="ml-1.5">{count}</span>
                     </button>
                   )
                 })}
               </div>
-
-              <div className="relative w-full lg:max-w-xs">
-                <label htmlFor="galeria-busca" className="sr-only">
-                  Buscar registros por título, período, local ou tag
-                </label>
-                <Search
-                  size={15}
-                  strokeWidth={1.7}
-                  aria-hidden="true"
-                  className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-stone"
-                />
-                <input
-                  id="galeria-busca"
-                  type="search"
-                  value={searchQuery}
-                  onChange={(event) => setSearchQuery(event.target.value)}
-                  placeholder="Buscar por título, década, local ou tag…"
-                  className="w-full rounded-full border border-stone/45 bg-cream py-2 pl-10 pr-9 text-sm text-ink placeholder:text-stone transition focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/20"
-                />
-                {searchQuery ? (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery('')}
-                    aria-label="Limpar busca"
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-stone transition hover:text-forest"
-                  >
-                    <X size={14} strokeWidth={1.8} aria-hidden="true" />
-                  </button>
-                ) : null}
-              </div>
             </div>
 
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            {/* Subtle second row: Category pills on left, result count + carousel controls on right */}
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
               <div
                 role="group"
                 aria-label="Filtrar galeria por categoria"
-                className="no-scrollbar flex gap-2 overflow-x-auto pb-0.5"
+                className="no-scrollbar flex min-w-0 flex-1 items-center gap-2 overflow-x-auto py-0.5"
               >
                 <button
                   type="button"
@@ -505,46 +611,75 @@ export function Gallery() {
                     syncGalleryUrl(selectedMediaType, ALL_CATEGORIES, null)
                   }}
                   className={cn(
-                    'shrink-0 rounded-full border px-4 py-2 text-xs font-medium tracking-[0.04em] transition',
+                    'shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors',
                     selectedCategory === ALL_CATEGORIES
-                      ? 'border-forest bg-forest text-parchment'
-                      : 'border-stone/45 text-stone hover:border-forest hover:text-forest',
+                      ? 'bg-forest text-cream'
+                      : 'bg-parchment/70 text-ink/75 hover:bg-cream',
                   )}
                 >
                   Todas
-                  <span className="ml-1.5">{items.length}</span>
                 </button>
 
                 {categories.map((category) => {
-                  const count = items.filter((item) => item.categoria === category).length
-
+                  const isActive = selectedCategory === category
                   return (
                     <button
                       key={category}
                       type="button"
-                      aria-pressed={selectedCategory === category}
+                      aria-pressed={isActive}
                       onClick={() => {
                         setSelectedCategory(category)
                         setLightboxId(null)
                         syncGalleryUrl(selectedMediaType, category, null)
                       }}
                       className={cn(
-                        'shrink-0 rounded-full border px-4 py-2 text-xs font-medium tracking-[0.04em] transition',
-                        selectedCategory === category
-                          ? 'border-forest bg-forest text-parchment'
-                          : 'border-stone/45 text-stone hover:border-forest hover:text-forest',
+                        'shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors',
+                        isActive
+                          ? 'bg-forest text-cream'
+                          : 'bg-parchment/70 text-ink/75 hover:bg-cream',
                       )}
                     >
                       {category}
-                      <span className="ml-1.5">{count}</span>
                     </button>
                   )
                 })}
               </div>
 
-              <p className="shrink-0 text-xs uppercase tracking-[0.16em] text-stone">
-                {filteredItems.length} {filteredItems.length === 1 ? 'registro' : 'registros'}
-              </p>
+              <div className="flex shrink-0 items-center gap-3">
+                <p className="text-[13px] tabular-nums text-stone">
+                  {filteredItems.length}{' '}
+                  {filteredItems.length === 1 ? 'registro' : 'registros'}
+                </p>
+
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => scrollCarousel('prev')}
+                    disabled={!canScrollPrev}
+                    aria-label="Registro anterior"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-line/80 bg-cream/85 text-forest transition-colors hover:border-forest hover:bg-cream disabled:cursor-not-allowed disabled:opacity-35"
+                  >
+                    <ChevronLeft
+                      size={17}
+                      strokeWidth={1.75}
+                      aria-hidden="true"
+                    />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => scrollCarousel('next')}
+                    disabled={!canScrollNext}
+                    aria-label="Próximo registro"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-line/80 bg-cream/85 text-forest transition-colors hover:border-forest hover:bg-cream disabled:cursor-not-allowed disabled:opacity-35"
+                  >
+                    <ChevronRight
+                      size={17}
+                      strokeWidth={1.75}
+                      aria-hidden="true"
+                    />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         ) : null}
@@ -561,8 +696,8 @@ export function Gallery() {
                 Acervo digital em preparação
               </h3>
               <p className="mx-auto mt-3 max-w-lg text-[14px] leading-relaxed text-stone">
-                Fotografias, vídeos e documentos serão exibidos aqui assim que a conexão com o
-                acervo digital do museu for configurada.
+                Fotografias, vídeos e documentos serão exibidos aqui assim que a
+                conexão com o acervo digital do museu for configurada.
               </p>
 
               {import.meta.env.DEV ? (
@@ -571,17 +706,24 @@ export function Gallery() {
                     Instruções para o ambiente de desenvolvimento
                   </summary>
                   <div className="mt-3 space-y-2 font-mono text-xs leading-relaxed text-stone">
-                    <p>1. Copie .env.example para .env.local e preencha as variáveis do Supabase.</p>
-                    <p>2. Execute as migrações SQL em supabase/migrations.</p>
+                    <p>
+                      1. Copie .env.example para .env.local e preencha as
+                      variáveis do Supabase.
+                    </p>
+                    <p>
+                      2. Execute as migrações SQL em supabase/migrations.
+                    </p>
                     <p>3. Publique a Edge Function e rode npm run seed:galeria.</p>
-                    {supabaseConfigIssue ? <p className="text-clay">{supabaseConfigIssue}</p> : null}
+                    {supabaseConfigIssue ? (
+                      <p className="text-clay">{supabaseConfigIssue}</p>
+                    ) : null}
                   </div>
                 </details>
               ) : null}
             </div>
           ) : error && !hasItems ? (
-            <div className="rounded-[36px] border border-clay/25 bg-clay/5 px-6 py-14 text-center sm:py-20">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-clay/30 text-clay">
+            <div className="rounded-[36px] border border-line bg-cream px-6 py-14 text-center sm:py-20">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-line text-forest">
                 <AlertCircle size={23} strokeWidth={1.5} aria-hidden="true" />
               </div>
               <h3 className="display mt-6 text-[clamp(1.6rem,3vw,2.2rem)] font-medium text-forest">
@@ -630,7 +772,12 @@ export function Gallery() {
               ) : null}
             </div>
           ) : (
-            <div ref={gridRef} className="gallery-columns columns-1 gap-5 sm:columns-2 lg:columns-3">
+            <div
+              ref={carouselRef}
+              onScroll={updateScrollButtons}
+              aria-label="Carrossel de registros do acervo"
+              className="no-scrollbar flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth pb-4"
+            >
               {filteredItems.map((item) => (
                 <GalleryCard
                   key={item.id}
@@ -645,14 +792,15 @@ export function Gallery() {
           )}
         </div>
 
-        <div className="mt-12 flex flex-col gap-4 border-t border-line pt-6 text-xs leading-relaxed text-stone sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-10 flex flex-col gap-4 border-t border-line pt-6 text-xs leading-relaxed text-stone sm:flex-row sm:items-center sm:justify-between">
           <p className="max-w-2xl">
-            Legendas e metadados sujeitos à validação curatorial do Museu Carajás. Acervo colaborativo
-            aberto a fotografias, vídeos e documentos históricos.
+            Legendas e metadados sujeitos à validação curatorial do Museu
+            Carajás. Acervo colaborativo aberto a fotografias, vídeos e
+            documentos históricos.
           </p>
           <Link
             to="/contribua"
-            className="group inline-flex shrink-0 items-center gap-2 font-semibold uppercase tracking-[0.14em] text-clay transition hover:text-clay-dark"
+            className="group inline-flex shrink-0 items-center gap-2 font-semibold uppercase tracking-[0.14em] text-forest transition hover:text-ink"
           >
             Enviar um registro
             <ArrowUpRight

@@ -66,6 +66,32 @@
     -webkit-user-drag: none;
   }
 
+  @supports (scrollbar-color: auto) {
+    html {
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-moss) var(--color-parchment);
+    }
+  }
+
+  ::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--color-parchment);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: color-mix(in srgb, var(--color-forest) 45%, transparent);
+    border-radius: 9999px;
+    border: 2px solid var(--color-parchment);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-forest);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     html {
       scroll-behavior: auto;

@@ -1,6 +1,13 @@
 import { supabase } from './supabase'
+import { normalizeText } from './utils'
 
 export type GaleriaMediaType = 'fotografia' | 'video' | 'documento'
+
+export type GaleriaFilterOptions = {
+  query?: string
+  mediaType?: 'todos' | GaleriaMediaType | string
+  category?: string
+}
 
 export type GaleriaItem = {
   id: string
@@ -177,4 +184,63 @@ export function getGaleriaThumbnailUrl(item: GaleriaItem): string | null {
   }
 
   return null
+}
+
+function matchesNormalizedToken(haystack: string, token: string): boolean {
+  if (haystack.includes(token)) return true
+  if (token.endsWith('s') && token.length >= 4 && haystack.includes(token.slice(0, -1))) {
+    return true
+  }
+  const stem = token.replace(/(?:ia|ico|ica|icos|icas)$/, '')
+  if (stem !== token && stem.length >= 5 && haystack.includes(stem)) {
+    return true
+  }
+  return false
+}
+
+export function filterGaleriaItems(
+  items: readonly GaleriaItem[],
+  options: GaleriaFilterOptions = {},
+): GaleriaItem[] {
+  const mediaType = options.mediaType?.trim() ?? ''
+  const category = options.category?.trim() ?? ''
+  const normalizedQuery = normalizeText(options.query ?? '')
+  const queryTokens = normalizedQuery ? normalizedQuery.split(' ') : []
+
+  const filterByMedia = Boolean(
+    mediaType && mediaType !== 'todos' && mediaType !== 'Todas',
+  )
+  const filterByCategory = Boolean(
+    category && category !== 'Todas' && category !== 'todos',
+  )
+
+  return items.filter((item) => {
+    if (filterByMedia && item.tipo_midia !== mediaType) {
+      return false
+    }
+
+    if (filterByCategory && item.categoria !== category) {
+      return false
+    }
+
+    if (queryTokens.length === 0) {
+      return true
+    }
+
+    const haystack = normalizeText(
+      [
+        item.titulo,
+        item.descricao,
+        item.categoria,
+        item.periodo_estimado,
+        item.localizacao,
+        item.credito,
+        ...(item.tags ?? []),
+      ]
+        .filter(Boolean)
+        .join(' '),
+    )
+
+    return queryTokens.every((token) => matchesNormalizedToken(haystack, token))
+  })
 }

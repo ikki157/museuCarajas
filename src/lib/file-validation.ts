@@ -90,7 +90,8 @@ function detectFormat(bytes: Uint8Array): ValidatedFileFormat | null {
     bytes[0] === 0x1a &&
     bytes[1] === 0x45 &&
     bytes[2] === 0xdf &&
-    bytes[3] === 0xa3
+    bytes[3] === 0xa3 &&
+    containsAscii(bytes.subarray(0, 64), 'webm')
   ) {
     return 'webm'
   }
@@ -175,11 +176,24 @@ async function canDecodeImage(file: File): Promise<boolean> {
   })
 }
 
+const DANGEROUS_PDF_TOKEN_REGEX =
+  /\/(?:JavaScript|JS|OpenAction|AA|Launch|EmbeddedFile|RichMedia|XFA|SubmitForm|ImportData|GoToR|GoToE)(?=[\s/<>\[\]()\r\n])/i
+
 async function hasValidPdfEnding(file: File): Promise<boolean> {
   if (file.size < 100) return false
 
   const tail = new Uint8Array(await file.slice(Math.max(0, file.size - 4096)).arrayBuffer())
   return containsAscii(tail, '%%EOF')
+}
+
+async function hasDangerousPdfContent(file: File): Promise<boolean> {
+  const bytes = new Uint8Array(await file.arrayBuffer())
+  const rawText = new TextDecoder('latin1').decode(bytes)
+  const unescapedNames = rawText.replace(/#([0-9A-Fa-f]{2})/g, (_, hex: string) => {
+    const code = Number.parseInt(hex, 16)
+    return code >= 0x20 && code <= 0x7e ? String.fromCharCode(code) : `#${hex}`
+  })
+  return DANGEROUS_PDF_TOKEN_REGEX.test(unescapedNames)
 }
 
 function hasValidVideoStructure(
@@ -200,7 +214,8 @@ function hasValidVideoStructure(
     header[0] === 0x1a &&
     header[1] === 0x45 &&
     header[2] === 0xdf &&
-    header[3] === 0xa3
+    header[3] === 0xa3 &&
+    containsAscii(header, 'webm')
   )
 }
 
@@ -235,7 +250,7 @@ export function validateExternalVideoUrl(url: string): ExternalVideoValidationRe
     }
   }
 
-  if (parsed.protocol !== 'https:' || parsed.username || parsed.password) {
+  if (parsed.protocol !== 'https:' || parsed.username || parsed.password || parsed.port) {
     return {
       ok: false,
       error: 'Por segurança, informe apenas links HTTPS públicos do YouTube ou Vimeo.',
@@ -414,6 +429,13 @@ export async function validateContributionFile(file: File): Promise<FileValidati
       return {
         ok: false,
         error: 'O PDF parece estar corrompido ou incompleto. Verifique o arquivo e tente novamente.',
+      }
+    }
+    if (await hasDangerousPdfContent(file)) {
+      return {
+        ok: false,
+        error:
+          'O PDF contém recursos ativos ou anexos embutidos não permitidos (como scripts ou ações automáticas). Exporte o documento novamente como PDF estático.',
       }
     }
   } else {

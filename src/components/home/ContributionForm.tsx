@@ -329,10 +329,12 @@ export function ContributionForm() {
     const name = values.nome.trim()
     if (name.length < 5 || !name.includes(' ')) {
       validationErrors.nome = 'Informe seu nome completo (nome e sobrenome).'
+    } else if (name.length > 160) {
+      validationErrors.nome = 'O nome informado deve ter no máximo 160 caracteres.'
     }
 
     const email = values.email.trim().toLowerCase()
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) || email.length > 254) {
       validationErrors.email = 'Informe um endereço de e-mail válido.'
     }
 
@@ -871,6 +873,7 @@ export function ContributionForm() {
               id="nome"
               name="nome"
               type="text"
+              maxLength={160}
               autoComplete="name"
               value={values.nome}
               onChange={(event) => updateValue('nome', event.target.value)}
@@ -895,6 +898,7 @@ export function ContributionForm() {
                 id="email"
                 name="email"
                 type="email"
+                maxLength={254}
                 autoComplete="email"
                 value={values.email}
                 onChange={(event) => updateValue('email', event.target.value)}

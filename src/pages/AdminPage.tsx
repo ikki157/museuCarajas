@@ -34,6 +34,7 @@ import {
   getEmbedVideoUrl,
   getGaleriaImageUrl,
   getGaleriaThumbnailUrl,
+  sanitizeSafeMediaUrl,
   type GaleriaItem,
   type GaleriaMediaType,
 } from '../lib/galeria'
@@ -117,9 +118,9 @@ function ContributionCard({
   const [actionError, setActionError] = useState<string | null>(null)
 
   const statusMeta = STATUS_META[item.status]
-  const embedVideoUrl = item.midia_externa_url
-    ? getEmbedVideoUrl(item.midia_externa_url)
-    : null
+  const safeExternalUrl = sanitizeSafeMediaUrl(item.midia_externa_url, false)
+  const embedVideoUrl = safeExternalUrl ? getEmbedVideoUrl(safeExternalUrl) : null
+  const safeSignedUrl = sanitizeSafeMediaUrl(signedUrl, false)
   const isBusy = isPublishing || isRejecting
 
   async function handleTogglePreview() {
@@ -257,6 +258,13 @@ function ContributionCard({
 
       {previewOpen ? (
         <div className="mt-5 rounded-2xl border border-line/70 bg-parchment/45 p-4">
+          {item.status !== 'publicada' && item.arquivo_caminho ? (
+            <p className="mb-3 rounded-xl border border-line/80 bg-cream/85 px-3.5 py-2 text-xs text-stone">
+              Arquivo em quarentena no bucket privado: verifique a procedência e o
+              conteúdo antes de abrir em nova aba ou publicar no acervo.
+            </p>
+          ) : null}
+
           {loadingPreview ? (
             <div className="flex items-center justify-center gap-2 py-10 text-sm text-stone">
               <Loader2 size={16} className="animate-spin" aria-hidden="true" />
@@ -267,7 +275,7 @@ function ContributionCard({
               <AlertCircle size={16} aria-hidden="true" />
               <span>{previewError}</span>
             </div>
-          ) : item.midia_externa_url ? (
+          ) : safeExternalUrl ? (
             <div className="space-y-3">
               {embedVideoUrl ? (
                 <div className="aspect-video w-full overflow-hidden rounded-2xl bg-forest-deep">
@@ -275,33 +283,38 @@ function ContributionCard({
                     src={embedVideoUrl}
                     title={titulo || item.titulo}
                     className="h-full w-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"
                     allowFullScreen
                   />
                 </div>
               ) : null}
               <a
-                href={item.midia_externa_url}
+                href={safeExternalUrl}
                 target="_blank"
                 rel="noopener noreferrer"
+                referrerPolicy="no-referrer"
                 className="inline-flex items-center gap-1.5 text-xs font-medium text-forest underline underline-offset-4 hover:text-ink"
               >
                 <ExternalLink size={13} aria-hidden="true" />
                 Abrir link externo em nova aba
               </a>
             </div>
-          ) : signedUrl ? (
+          ) : safeSignedUrl ? (
             item.tipo_midia === 'fotografia' ? (
               <div className="space-y-3">
                 <img
-                  src={signedUrl}
+                  src={safeSignedUrl}
                   alt={titulo || item.titulo}
+                  referrerPolicy="no-referrer"
                   className="max-h-[420px] w-full rounded-2xl bg-forest-deep/5 object-contain"
                 />
                 <a
-                  href={signedUrl}
+                  href={safeSignedUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  referrerPolicy="no-referrer"
                   className="inline-flex items-center gap-1.5 text-xs font-medium text-forest underline underline-offset-4 hover:text-ink"
                 >
                   <ExternalLink size={13} aria-hidden="true" />
@@ -310,7 +323,7 @@ function ContributionCard({
               </div>
             ) : item.tipo_midia === 'video' ? (
               <video
-                src={signedUrl}
+                src={safeSignedUrl}
                 controls
                 preload="metadata"
                 className="max-h-[420px] w-full rounded-2xl bg-forest-deep"
@@ -318,14 +331,16 @@ function ContributionCard({
             ) : (
               <div className="space-y-3">
                 <iframe
-                  src={signedUrl}
+                  src={safeSignedUrl}
                   title={`Pré-visualização do documento: ${titulo || item.titulo}`}
+                  referrerPolicy="no-referrer"
                   className="h-[420px] w-full rounded-2xl border border-line bg-cream"
                 />
                 <a
-                  href={signedUrl}
+                  href={safeSignedUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  referrerPolicy="no-referrer"
                   className="inline-flex items-center gap-1.5 rounded-full bg-forest px-4 py-2 text-xs font-medium text-cream transition-colors hover:bg-forest-deep"
                 >
                   <ExternalLink size={13} aria-hidden="true" />
@@ -638,6 +653,25 @@ export function AdminPage() {
   const [loadingData, setLoadingData] = useState(false)
   const [dataError, setDataError] = useState<string | null>(null)
   const [feedbackBanner, setFeedbackBanner] = useState<string | null>(null)
+
+  useEffect(() => {
+    const existing = document.querySelector<HTMLMetaElement>('meta[name="robots"]')
+    const previousContent = existing?.getAttribute('content') ?? null
+    const meta = existing ?? document.createElement('meta')
+    meta.setAttribute('name', 'robots')
+    meta.setAttribute('content', 'noindex, nofollow')
+    if (!existing) {
+      document.head.appendChild(meta)
+    }
+
+    return () => {
+      if (existing && previousContent !== null) {
+        existing.setAttribute('content', previousContent)
+      } else if (!existing) {
+        meta.remove()
+      }
+    }
+  }, [])
 
   const verifyAdminSession = useCallback(async (sessionUser: User | null) => {
     if (!sessionUser || !supabase) {

@@ -6,6 +6,7 @@ const MAX_VIDEO_BYTES = 25 * 1024 * 1024
 const MAX_REQUEST_BYTES = 27 * 1024 * 1024
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000
 const RATE_LIMIT_MAX = 5
+const GLOBAL_BURST_MAX = 60
 const MIN_FORM_TIME_MS = 2500
 const MAX_FORM_TIME_MS = 24 * 60 * 60 * 1000
 
@@ -75,8 +76,20 @@ const ALLOWED_CATEGORIES = new Set([
 
 const configuredOrigins = (Deno.env.get('ALLOWED_ORIGINS') ?? '')
   .split(',')
-  .map((origin) => origin.trim())
+  .map((origin) => origin.trim().replace(/\/+$/, ''))
   .filter(Boolean)
+
+if (configuredOrigins.length === 0) {
+  console.warn(
+    '[enviar-contribuicao] ALLOWED_ORIGINS não configurado; defina ALLOWED_ORIGINS em produção para restringir origens.',
+  )
+}
+
+if (!Deno.env.get('RATE_LIMIT_SALT')) {
+  console.warn(
+    '[enviar-contribuicao] RATE_LIMIT_SALT não configurado; defina um segredo dedicado para hash de rate-limit.',
+  )
+}
 
 class RequestError extends Error {
   status: number
@@ -88,19 +101,33 @@ class RequestError extends Error {
   }
 }
 
-function corsHeaders(origin: string | null): Record<string, string> {
-  const allowedOrigin =
-    origin && (configuredOrigins.length === 0 || configuredOrigins.includes(origin))
-      ? origin
-      : configuredOrigins[0] ?? '*'
+function normalizeOrigin(origin: string | null): string | null {
+  return origin ? origin.trim().replace(/\/+$/, '') : null
+}
 
-  return {
-    'Access-Control-Allow-Origin': allowedOrigin,
+function isOriginAllowed(origin: string | null): boolean {
+  const normalized = normalizeOrigin(origin)
+  if (configuredOrigins.length === 0) return true
+  if (!normalized) return false
+  return configuredOrigins.includes(normalized)
+}
+
+function corsHeaders(origin: string | null): Record<string, string> {
+  const normalized = normalizeOrigin(origin)
+  const headers: Record<string, string> = {
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Max-Age': '86400',
     Vary: 'Origin',
   }
+
+  if (configuredOrigins.length === 0) {
+    headers['Access-Control-Allow-Origin'] = normalized ?? '*'
+  } else if (normalized && configuredOrigins.includes(normalized)) {
+    headers['Access-Control-Allow-Origin'] = normalized
+  }
+
+  return headers
 }
 
 function jsonResponse(
@@ -113,15 +140,10 @@ function jsonResponse(
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
       'Cache-Control': 'no-store',
+      'X-Content-Type-Options': 'nosniff',
       ...corsHeaders(origin),
     },
   })
-}
-
-function isOriginAllowed(origin: string | null): boolean {
-  if (configuredOrigins.length === 0) return true
-  if (!origin) return false
-  return configuredOrigins.includes(origin)
 }
 
 function ascii(bytes: Uint8Array, start: number, length: number): string {
@@ -177,7 +199,8 @@ function detectFormat(bytes: Uint8Array): FileFormat | null {
     bytes[0] === 0x1a &&
     bytes[1] === 0x45 &&
     bytes[2] === 0xdf &&
-    bytes[3] === 0xa3
+    bytes[3] === 0xa3 &&
+    containsAscii(bytes.subarray(0, 64), 'webm')
   ) {
     return 'webm'
   }
@@ -202,6 +225,33 @@ async function sha256Hex(value: string | Uint8Array): Promise<string> {
   return Array.from(new Uint8Array(digest))
     .map((byte) => byte.toString(16).padStart(2, '0'))
     .join('')
+}
+
+async function hmacSha256Hex(secret: string, message: string): Promise<string> {
+  const encoder = new TextEncoder()
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  )
+  const signature = await crypto.subtle.sign('HMAC', cryptoKey, encoder.encode(message))
+  return Array.from(new Uint8Array(signature))
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('')
+}
+
+const DANGEROUS_PDF_TOKEN_REGEX =
+  /\/(?:JavaScript|JS|OpenAction|AA|Launch|EmbeddedFile|RichMedia|XFA|SubmitForm|ImportData|GoToR|GoToE)(?=[\s/<>\[\]()\r\n])/i
+
+function hasDangerousPdfContent(bytes: Uint8Array): boolean {
+  const rawText = new TextDecoder('latin1').decode(bytes)
+  const unescapedNames = rawText.replace(/#([0-9A-Fa-f]{2})/g, (_, hex: string) => {
+    const code = Number.parseInt(hex, 16)
+    return code >= 0x20 && code <= 0x7e ? String.fromCharCode(code) : `#${hex}`
+  })
+  return DANGEROUS_PDF_TOKEN_REGEX.test(unescapedNames)
 }
 
 function hasValidImageEnding(
@@ -249,7 +299,8 @@ function hasValidVideoStructure(bytes: Uint8Array, format: 'mp4' | 'webm'): bool
     bytes[0] === 0x1a &&
     bytes[1] === 0x45 &&
     bytes[2] === 0xdf &&
-    bytes[3] === 0xa3
+    bytes[3] === 0xa3 &&
+    containsAscii(bytes.subarray(0, 64), 'webm')
   )
 }
 
@@ -269,7 +320,7 @@ function validateExternalVideoUrl(rawUrl: string): string {
     )
   }
 
-  if (parsed.protocol !== 'https:' || parsed.username || parsed.password) {
+  if (parsed.protocol !== 'https:' || parsed.username || parsed.password || parsed.port) {
     throw new RequestError(
       'Por segurança, apenas links HTTPS públicos do YouTube ou Vimeo são aceitos.',
     )
@@ -418,6 +469,11 @@ async function validateFile(file: File): Promise<ValidatedFile> {
         'O PDF parece estar corrompido ou incompleto. Verifique o arquivo e tente novamente.',
       )
     }
+    if (hasDangerousPdfContent(bytes)) {
+      throw new RequestError(
+        'O PDF contém recursos ativos ou anexos embutidos não permitidos (como scripts ou ações automáticas). Exporte o documento novamente como PDF estático.',
+      )
+    }
   } else if (format === 'mp4' || format === 'webm') {
     if (!hasValidVideoStructure(bytes, format)) {
       throw new RequestError(
@@ -496,7 +552,7 @@ function validateFields(form: FormData): {
   }
 
   const phoneDigits = telefone.replace(/\D/g, '')
-  if (telefone && (phoneDigits.length < 10 || phoneDigits.length > 11)) {
+  if (telefone && (telefone.length > 30 || phoneDigits.length < 10 || phoneDigits.length > 11)) {
     throw new RequestError('Informe um telefone com DDD ou deixe este campo em branco.')
   }
 
@@ -618,15 +674,58 @@ function getClientIp(request: Request): string {
   const directIp =
     request.headers.get('cf-connecting-ip')?.trim() ||
     request.headers.get('x-real-ip')?.trim()
-  if (directIp) return directIp
+  if (directIp) return directIp.slice(0, 64)
 
   const forwarded = request.headers.get('x-forwarded-for')
   if (forwarded) {
     const first = forwarded.split(',')[0]?.trim()
-    if (first) return first
+    if (first) return first.slice(0, 64)
   }
 
   return 'unknown'
+}
+
+async function readBoundedFormData(request: Request): Promise<FormData> {
+  const contentType = request.headers.get('content-type') ?? ''
+  if (!contentType.toLowerCase().includes('multipart/form-data')) {
+    throw new RequestError('Tipo de conteúdo inválido. Envie multipart/form-data.', 415)
+  }
+
+  if (!request.body) {
+    throw new RequestError('Corpo da requisição ausente.', 400)
+  }
+
+  const reader = request.body.getReader()
+  const chunks: Uint8Array[] = []
+  let totalBytes = 0
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      if (value) {
+        totalBytes += value.byteLength
+        if (totalBytes > MAX_REQUEST_BYTES) {
+          await reader.cancel()
+          throw new RequestError('O envio excede o tamanho máximo permitido.', 413)
+        }
+        chunks.push(value)
+      }
+    }
+  } finally {
+    reader.releaseLock()
+  }
+
+  const combined = new Uint8Array(totalBytes)
+  let offset = 0
+  for (const chunk of chunks) {
+    combined.set(chunk, offset)
+    offset += chunk.byteLength
+  }
+
+  return new Response(combined, {
+    headers: { 'Content-Type': contentType },
+  }).formData()
 }
 
 function createServiceClient(): SupabaseClient {
@@ -650,6 +749,9 @@ async function handleRequest(request: Request): Promise<Response> {
   const origin = request.headers.get('origin')
 
   if (request.method === 'OPTIONS') {
+    if (!isOriginAllowed(origin)) {
+      return new Response(null, { status: 403, headers: corsHeaders(origin) })
+    }
     return new Response(null, {
       status: 204,
       headers: corsHeaders(origin),
@@ -664,34 +766,44 @@ async function handleRequest(request: Request): Promise<Response> {
     return jsonResponse({ error: 'Origem não autorizada.' }, 403, origin)
   }
 
-  const contentLength = Number(request.headers.get('content-length') ?? '0')
-  if (!Number.isFinite(contentLength) || contentLength > MAX_REQUEST_BYTES) {
-    return jsonResponse(
-      { error: 'O envio excede o tamanho máximo permitido.' },
-      413,
-      origin,
-    )
+  const contentLengthHeader = request.headers.get('content-length')
+  if (contentLengthHeader !== null) {
+    const contentLength = Number(contentLengthHeader)
+    if (!Number.isFinite(contentLength) || contentLength < 0 || contentLength > MAX_REQUEST_BYTES) {
+      return jsonResponse(
+        { error: 'O envio excede o tamanho máximo permitido.' },
+        413,
+        origin,
+      )
+    }
   }
 
   try {
     const supabase = createServiceClient()
 
     const salt =
-      Deno.env.get('RATE_LIMIT_SALT') ??
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ??
-      'museu-hilmar-harry-kluck'
-    const ipHash = await sha256Hex(`${salt}:${getClientIp(request)}`)
+      Deno.env.get('RATE_LIMIT_SALT')?.trim() ||
+      'museu-carajas-rate-limit-fallback-v1'
+    const ipHash = await hmacSha256Hex(salt, `ip:${getClientIp(request)}`)
 
     const windowStart = new Date(Date.now() - RATE_LIMIT_WINDOW_MS).toISOString()
-    const { count, error: rateLimitError } = await supabase
-      .from('contribuicoes')
-      .select('id', { count: 'exact', head: true })
-      .eq('ip_hash', ipHash)
-      .gte('criado_em', windowStart)
+    const [{ count: ipCount, error: rateLimitError }, { count: globalCount, error: burstError }] =
+      await Promise.all([
+        supabase
+          .from('contribuicoes')
+          .select('id', { count: 'exact', head: true })
+          .eq('ip_hash', ipHash)
+          .gte('criado_em', windowStart),
+        supabase
+          .from('contribuicoes')
+          .select('id', { count: 'exact', head: true })
+          .gte('criado_em', windowStart),
+      ])
 
     if (rateLimitError) throw rateLimitError
+    if (burstError) throw burstError
 
-    if ((count ?? 0) >= RATE_LIMIT_MAX) {
+    if ((ipCount ?? 0) >= RATE_LIMIT_MAX || (globalCount ?? 0) >= GLOBAL_BURST_MAX) {
       return jsonResponse(
         {
           error:
@@ -702,8 +814,26 @@ async function handleRequest(request: Request): Promise<Response> {
       )
     }
 
-    const form = await request.formData()
+    const form = await readBoundedFormData(request)
     const fields = validateFields(form)
+
+    const { count: emailCount, error: emailRateError } = await supabase
+      .from('contribuicoes')
+      .select('id', { count: 'exact', head: true })
+      .eq('email', fields.email)
+      .gte('criado_em', windowStart)
+
+    if (emailRateError) throw emailRateError
+    if ((emailCount ?? 0) >= RATE_LIMIT_MAX) {
+      return jsonResponse(
+        {
+          error:
+            'Muitos envios para este endereço de e-mail em pouco tempo. Aguarde alguns minutos.',
+        },
+        429,
+        origin,
+      )
+    }
 
     const id = crypto.randomUUID()
     const protocolo = makeProtocol()

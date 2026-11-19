@@ -53,16 +53,6 @@ function getClient() {
   return supabase
 }
 
-function sanitizeFileName(rawName: string): string {
-  const cleaned = rawName
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-zA-Z0-9._-]+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '')
-  return cleaned || 'registro'
-}
-
 function inferFormatFromContribution(contribuicao: ContribuicaoItem): string {
   const mime = contribuicao.arquivo_mime?.trim().toLowerCase() ?? ''
   if (mime === 'image/jpeg' || mime === 'image/jpg') return 'jpg'
@@ -156,6 +146,13 @@ export async function approveAndPublishContribution(
 ): Promise<string> {
   const client = getClient()
 
+  if (contribuicao.status === 'publicada') {
+    throw new Error('Esta contribuição já foi publicada anteriormente.')
+  }
+  if (contribuicao.status === 'recusada') {
+    throw new Error('Contribuições recusadas não podem ser publicadas diretamente.')
+  }
+
   const titulo = overrides.titulo.trim()
   const descricao = overrides.descricao.trim()
   const categoria = overrides.categoria.trim()
@@ -179,8 +176,10 @@ export async function approveAndPublishContribution(
     throw new Error('A localização deve ter no máximo 120 caracteres.')
   }
 
+  const formato = inferFormatFromContribution(contribuicao)
   let publicPath: string | null = null
   let publicUrl: string | null = null
+  let uploadedPublicFile = false
 
   if (contribuicao.arquivo_caminho) {
     const { data: blob, error: downloadError } = await client.storage
@@ -193,11 +192,8 @@ export async function approveAndPublishContribution(
       )
     }
 
-    const baseName =
-      contribuicao.arquivo_nome_original ||
-      contribuicao.arquivo_caminho.split('/').pop() ||
-      'arquivo'
-    publicPath = `curadoria/${contribuicao.id}-${sanitizeFileName(baseName)}`
+    // Usa apenas UUID + formato verificado na chave pública (nunca o nome de arquivo enviado pelo usuário)
+    publicPath = `curadoria/${contribuicao.id}.${formato}`
 
     const { error: uploadError } = await client.storage
       .from('galeria')
@@ -212,91 +208,112 @@ export async function approveAndPublishContribution(
       )
     }
 
+    uploadedPublicFile = true
     const { data: publicUrlData } = client.storage
       .from('galeria')
       .getPublicUrl(publicPath)
     publicUrl = publicUrlData.publicUrl || null
   }
 
-  const { error: metadataError } = await client
-    .from('contribuicoes')
-    .update({
-      titulo,
-      descricao,
-      categoria,
-      periodo_estimado: periodoEstimado,
-      localizacao,
-    })
-    .eq('id', contribuicao.id)
-
-  if (metadataError) {
-    throw new Error(
-      `Falha ao salvar ajustes editoriais: ${metadataError.message}`,
-    )
-  }
-
-  const { data: rpcId, error: rpcError } = await client.rpc(
-    'publicar_contribuicao_na_galeria',
-    {
-      p_contribuicao_id: contribuicao.id,
-      p_caminho_publico: publicPath,
-      p_thumbnail_url: null,
-      p_credito: credito,
-    },
-  )
-
-  if (!rpcError && typeof rpcId === 'string' && rpcId) {
-    if (publicUrl) {
-      await client
-        .from('galeria')
-        .update({ arquivo_url: publicUrl })
-        .eq('id', rpcId)
+  const rollbackPublicFile = async () => {
+    if (uploadedPublicFile && publicPath) {
+      await client.storage.from('galeria').remove([publicPath])
     }
-    return rpcId
   }
 
-  const formato = inferFormatFromContribution(contribuicao)
-  const { data: inserted, error: insertError } = await client
-    .from('galeria')
-    .insert({
-      titulo,
-      descricao,
-      categoria,
-      caminho_storage: publicPath,
-      arquivo_url: publicUrl,
-      formato,
-      credito,
-      publicado: true,
-      tipo_midia: contribuicao.tipo_midia,
-      periodo_estimado: periodoEstimado,
-      localizacao,
-      midia_externa_url: contribuicao.midia_externa_url,
-      thumbnail_url: null,
-      contribuicao_id: contribuicao.id,
-    })
-    .select('id')
-    .single()
+  try {
+    const { error: metadataError } = await client
+      .from('contribuicoes')
+      .update({
+        titulo,
+        descricao,
+        categoria,
+        periodo_estimado: periodoEstimado,
+        localizacao,
+      })
+      .eq('id', contribuicao.id)
 
-  if (insertError || !inserted?.id) {
-    throw new Error(
-      rpcError?.message ||
+    if (metadataError) {
+      throw new Error(
+        `Falha ao salvar ajustes editoriais: ${metadataError.message}`,
+      )
+    }
+
+    const { data: rpcId, error: rpcError } = await client.rpc(
+      'publicar_contribuicao_na_galeria',
+      {
+        p_contribuicao_id: contribuicao.id,
+        p_caminho_publico: publicPath,
+        p_thumbnail_url: null,
+        p_credito: credito,
+      },
+    )
+
+    if (!rpcError && typeof rpcId === 'string' && rpcId) {
+      if (publicUrl) {
+        await client
+          .from('galeria')
+          .update({ arquivo_url: publicUrl })
+          .eq('id', rpcId)
+      }
+      return rpcId
+    }
+
+    const isMissingRpc =
+      rpcError?.code === 'PGRST202' || rpcError?.code === '42883'
+
+    if (rpcError && !isMissingRpc) {
+      throw new Error(
+        rpcError.message ||
+          'Não foi possível publicar a contribuição na galeria.',
+      )
+    }
+
+    const { data: inserted, error: insertError } = await client
+      .from('galeria')
+      .insert({
+        titulo,
+        descricao,
+        categoria,
+        caminho_storage: publicPath,
+        arquivo_url: publicUrl,
+        formato,
+        credito,
+        publicado: true,
+        tipo_midia: contribuicao.tipo_midia,
+        periodo_estimado: periodoEstimado,
+        localizacao,
+        midia_externa_url: contribuicao.midia_externa_url,
+        thumbnail_url: null,
+        contribuicao_id: contribuicao.id,
+      })
+      .select('id')
+      .single()
+
+    if (insertError || !inserted?.id) {
+      throw new Error(
         insertError?.message ||
-        'Não foi possível publicar a contribuição na galeria.',
-    )
+          'Não foi possível publicar a contribuição na galeria.',
+      )
+    }
+
+    const { error: statusUpdateError } = await client
+      .from('contribuicoes')
+      .update({ status: 'publicada' })
+      .eq('id', contribuicao.id)
+
+    if (statusUpdateError) {
+      await client.from('galeria').delete().eq('id', String(inserted.id))
+      throw new Error(
+        `Falha ao atualizar o status da contribuição (publicação revertida): ${statusUpdateError.message}`,
+      )
+    }
+
+    return String(inserted.id)
+  } catch (error) {
+    await rollbackPublicFile()
+    throw error
   }
-
-  const { error: statusUpdateError } = await client
-    .from('contribuicoes')
-    .update({ status: 'publicada' })
-    .eq('id', contribuicao.id)
-
-  if (statusUpdateError) {
-    throw new Error(
-      `Registro inserido na galeria, mas falhou ao atualizar o status: ${statusUpdateError.message}`,
-    )
-  }
-
-  return String(inserted.id)
 }
 
 export async function updateContributionStatus(

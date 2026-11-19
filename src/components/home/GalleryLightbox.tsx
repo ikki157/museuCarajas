@@ -115,7 +115,9 @@ export function GalleryLightbox({ items, index, onClose, onNavigate }: GalleryLi
                   key={item.id}
                   src={embedUrl}
                   title={item.titulo}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"
                   allowFullScreen
                   className="h-full w-full"
                 />
@@ -142,12 +144,14 @@ export function GalleryLightbox({ items, index, onClose, onNavigate }: GalleryLi
                   key={item.id}
                   src={mediaUrl}
                   title={item.titulo}
+                  referrerPolicy="no-referrer"
                   className="h-[58vh] w-full rounded-2xl border border-parchment/20 bg-cream shadow-[0_30px_80px_-20px_rgba(0,0,0,0.55)] sm:h-[64vh]"
                 />
                 <a
                   href={mediaUrl}
                   target="_blank"
                   rel="noreferrer noopener"
+                  referrerPolicy="no-referrer"
                   className="inline-flex items-center gap-2 rounded-full bg-parchment px-6 py-2.5 text-xs font-medium tracking-[0.06em] text-forest-deep transition hover:bg-cream"
                 >
                   Abrir documento em nova guia

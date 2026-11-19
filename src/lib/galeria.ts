@@ -66,7 +66,9 @@ function normalizeTags(value: unknown): string[] {
 function extractYouTubeId(rawUrl: string): string | null {
   try {
     const parsed = new URL(rawUrl.trim())
-    if (parsed.protocol !== 'https:') return null
+    if (parsed.protocol !== 'https:' || parsed.username || parsed.password || parsed.port) {
+      return null
+    }
 
     const host = parsed.hostname.toLowerCase()
     if (host === 'youtube.com' || host === 'www.youtube.com' || host === 'm.youtube.com') {
@@ -99,7 +101,9 @@ function extractYouTubeId(rawUrl: string): string | null {
 function extractVimeoId(rawUrl: string): string | null {
   try {
     const parsed = new URL(rawUrl.trim())
-    if (parsed.protocol !== 'https:') return null
+    if (parsed.protocol !== 'https:' || parsed.username || parsed.password || parsed.port) {
+      return null
+    }
 
     const host = parsed.hostname.toLowerCase()
     if (host === 'vimeo.com' || host === 'www.vimeo.com') {
@@ -157,22 +161,59 @@ export function mapGaleriaRow(row: Record<string, unknown>): GaleriaItem {
   }
 }
 
+export function sanitizeSafeMediaUrl(
+  rawUrl: string | null | undefined,
+  allowRelative = true,
+): string | null {
+  if (!rawUrl) return null
+  const trimmed = rawUrl.trim()
+  if (!trimmed || trimmed.length > 2048 || /[\u0000-\u001f\u007f]/.test(trimmed)) {
+    return null
+  }
+
+  if (allowRelative && trimmed.startsWith('/') && !trimmed.startsWith('//') && !trimmed.includes('\\')) {
+    return trimmed
+  }
+
+  try {
+    const parsed = new URL(trimmed)
+    if (parsed.username || parsed.password) return null
+
+    if (parsed.protocol === 'https:') {
+      return parsed.toString()
+    }
+
+    if (
+      parsed.protocol === 'http:' &&
+      (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1')
+    ) {
+      return parsed.toString()
+    }
+
+    return null
+  } catch {
+    return null
+  }
+}
+
 export function getGaleriaImageUrl(item: GaleriaItem): string | null {
-  if (item.arquivo_url) return item.arquivo_url
+  if (item.arquivo_url) return sanitizeSafeMediaUrl(item.arquivo_url, true)
   if (!supabase || !item.caminho_storage) return null
 
   const { data } = supabase.storage.from(GALERIA_BUCKET).getPublicUrl(item.caminho_storage)
-  return data.publicUrl || null
+  return sanitizeSafeMediaUrl(data.publicUrl, false)
 }
 
 export function getGaleriaThumbnailUrl(item: GaleriaItem): string | null {
   if (item.thumbnail_url) {
-    if (/^(https?:\/\/|\/)/.test(item.thumbnail_url)) {
-      return item.thumbnail_url
+    const safeThumb = sanitizeSafeMediaUrl(item.thumbnail_url, true)
+    if (safeThumb) {
+      return safeThumb
     }
-    if (supabase) {
+    if (supabase && !item.thumbnail_url.includes('://') && !item.thumbnail_url.startsWith('/')) {
       const { data } = supabase.storage.from(GALERIA_BUCKET).getPublicUrl(item.thumbnail_url)
-      if (data.publicUrl) return data.publicUrl
+      const safeStorageThumb = sanitizeSafeMediaUrl(data.publicUrl, false)
+      if (safeStorageThumb) return safeStorageThumb
     }
   }
 

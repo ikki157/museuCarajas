@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import type { ValidatedFile } from './file-validation'
+import type { ValidatedFile, ValidatedFileCategory } from './file-validation'
 
 export type ContributionPayload = {
   nome: string
@@ -10,7 +10,11 @@ export type ContributionPayload = {
   descricao: string
   autorizacao: boolean
   website: string
-  arquivo: ValidatedFile
+  tipoMidia?: ValidatedFileCategory
+  periodoEstimado?: string
+  localizacao?: string
+  midiaExternaUrl?: string
+  arquivo?: ValidatedFile | null
   formStartedAt: number
   formElapsedMs: number
 }
@@ -47,6 +51,16 @@ async function readFunctionError(error: unknown): Promise<string | null> {
 export async function submitContribution(
   payload: ContributionPayload,
 ): Promise<ContributionResponse> {
+  const externalUrl = payload.midiaExternaUrl?.trim() ?? ''
+  const tipoMidia: ValidatedFileCategory =
+    payload.tipoMidia ?? payload.arquivo?.category ?? (externalUrl ? 'video' : 'fotografia')
+
+  if (!payload.arquivo && !externalUrl) {
+    throw new ContributionError(
+      'Anexe um arquivo válido ou informe o link de um vídeo no YouTube ou Vimeo.',
+    )
+  }
+
   if (!supabase) {
     throw new ContributionError(
       'O serviço de envio ainda não está configurado. Nenhum dado foi enviado.',
@@ -62,9 +76,16 @@ export async function submitContribution(
   formData.set('descricao', payload.descricao)
   formData.set('autorizacao', String(payload.autorizacao))
   formData.set('website', payload.website)
+  formData.set('tipo_midia', tipoMidia)
+  formData.set('periodo_estimado', payload.periodoEstimado?.trim() ?? '')
+  formData.set('localizacao', payload.localizacao?.trim() ?? '')
+  formData.set('midia_externa_url', externalUrl)
   formData.set('form_started_at', String(payload.formStartedAt))
   formData.set('form_elapsed_ms', String(payload.formElapsedMs))
-  formData.set('arquivo', payload.arquivo.file, payload.arquivo.file.name)
+
+  if (payload.arquivo) {
+    formData.set('arquivo', payload.arquivo.file, payload.arquivo.file.name)
+  }
 
   const { data, error } = await supabase.functions.invoke('enviar-contribuicao', {
     body: formData,

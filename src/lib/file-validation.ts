@@ -1,9 +1,10 @@
 export const MAX_PHOTO_BYTES = 10 * 1024 * 1024
 export const MAX_PDF_BYTES = 15 * 1024 * 1024
-export const ACCEPTED_FILE_EXTENSIONS = '.jpg,.jpeg,.png,.webp,.pdf'
+export const MAX_VIDEO_BYTES = 25 * 1024 * 1024
+export const ACCEPTED_FILE_EXTENSIONS = '.jpg,.jpeg,.png,.webp,.pdf,.mp4,.webm'
 
-export type ValidatedFileCategory = 'fotografia' | 'documento'
-export type ValidatedFileFormat = 'jpg' | 'png' | 'webp' | 'pdf'
+export type ValidatedFileCategory = 'fotografia' | 'documento' | 'video'
+export type ValidatedFileFormat = 'jpg' | 'png' | 'webp' | 'pdf' | 'mp4' | 'webm'
 
 export type ValidatedFile = {
   file: File
@@ -18,11 +19,17 @@ export type FileValidationResult =
   | { ok: true; value: ValidatedFile }
   | { ok: false; error: string }
 
+export type ExternalVideoValidationResult =
+  | { ok: true; provider: 'youtube' | 'vimeo'; normalizedUrl: string }
+  | { ok: false; error: string }
+
 const FORMAT_LABELS: Record<ValidatedFileFormat, string> = {
   jpg: 'JPEG',
   png: 'PNG',
   webp: 'WEBP',
   pdf: 'PDF',
+  mp4: 'MP4',
+  webm: 'WebM',
 }
 
 const EXTENSIONS: Record<ValidatedFileFormat, string[]> = {
@@ -30,6 +37,8 @@ const EXTENSIONS: Record<ValidatedFileFormat, string[]> = {
   png: ['png'],
   webp: ['webp'],
   pdf: ['pdf'],
+  mp4: ['mp4'],
+  webm: ['webm'],
 }
 
 const MIME_TYPES: Record<ValidatedFileFormat, string[]> = {
@@ -37,6 +46,8 @@ const MIME_TYPES: Record<ValidatedFileFormat, string[]> = {
   png: ['image/png'],
   webp: ['image/webp'],
   pdf: ['application/pdf'],
+  mp4: ['video/mp4'],
+  webm: ['video/webm'],
 }
 
 const CANONICAL_MIME: Record<ValidatedFileFormat, string> = {
@@ -44,6 +55,8 @@ const CANONICAL_MIME: Record<ValidatedFileFormat, string> = {
   png: 'image/png',
   webp: 'image/webp',
   pdf: 'application/pdf',
+  mp4: 'video/mp4',
+  webm: 'video/webm',
 }
 
 function ascii(bytes: Uint8Array, start: number, length: number): string {
@@ -66,6 +79,20 @@ function detectFormat(bytes: Uint8Array): ValidatedFileFormat | null {
 
   if (bytes.length >= 5 && ascii(bytes, 0, 5) === '%PDF-') {
     return 'pdf'
+  }
+
+  if (bytes.length >= 12 && ascii(bytes, 4, 4) === 'ftyp') {
+    return 'mp4'
+  }
+
+  if (
+    bytes.length >= 4 &&
+    bytes[0] === 0x1a &&
+    bytes[1] === 0x45 &&
+    bytes[2] === 0xdf &&
+    bytes[3] === 0xa3
+  ) {
+    return 'webm'
   }
 
   return null
@@ -95,7 +122,7 @@ function containsAscii(bytes: Uint8Array, value: string): boolean {
 
 async function hasValidImageEnding(
   file: File,
-  format: Exclude<ValidatedFileFormat, 'pdf'>,
+  format: 'jpg' | 'png' | 'webp',
   header: Uint8Array,
 ): Promise<boolean> {
   if (format === 'webp') {
@@ -155,6 +182,28 @@ async function hasValidPdfEnding(file: File): Promise<boolean> {
   return containsAscii(tail, '%%EOF')
 }
 
+function hasValidVideoStructure(
+  file: File,
+  format: 'mp4' | 'webm',
+  header: Uint8Array,
+): boolean {
+  if (file.size < 64 || header.length < 16) return false
+
+  if (format === 'mp4') {
+    if (ascii(header, 4, 4) !== 'ftyp') return false
+    const boxSize =
+      ((header[0] << 24) | (header[1] << 16) | (header[2] << 8) | header[3]) >>> 0
+    return boxSize >= 16 && boxSize <= file.size
+  }
+
+  return (
+    header[0] === 0x1a &&
+    header[1] === 0x45 &&
+    header[2] === 0xdf &&
+    header[3] === 0xa3
+  )
+}
+
 export function sanitizeFileName(name: string): string {
   const clean = name
     .replace(/[\u0000-\u001f\u007f]/g, '')
@@ -164,6 +213,101 @@ export function sanitizeFileName(name: string): string {
     .slice(0, 180)
 
   return clean || 'arquivo'
+}
+
+export function validateExternalVideoUrl(url: string): ExternalVideoValidationResult {
+  const trimmed = url.trim()
+  if (!trimmed) {
+    return { ok: false, error: 'Informe o link do vídeo no YouTube ou Vimeo.' }
+  }
+
+  if (trimmed.length > 512) {
+    return { ok: false, error: 'O link do vídeo é muito longo (máximo de 512 caracteres).' }
+  }
+
+  let parsed: URL
+  try {
+    parsed = new URL(trimmed)
+  } catch {
+    return {
+      ok: false,
+      error: 'Informe uma URL válida do YouTube ou Vimeo iniciada com https://.',
+    }
+  }
+
+  if (parsed.protocol !== 'https:' || parsed.username || parsed.password) {
+    return {
+      ok: false,
+      error: 'Por segurança, informe apenas links HTTPS públicos do YouTube ou Vimeo.',
+    }
+  }
+
+  const host = parsed.hostname.toLowerCase()
+  const youtubeIdRegex = /^[A-Za-z0-9_-]{11}$/
+  const vimeoIdRegex = /^\d{5,12}$/
+
+  if (host === 'youtube.com' || host === 'www.youtube.com' || host === 'm.youtube.com') {
+    if (parsed.pathname === '/watch') {
+      const videoId = parsed.searchParams.get('v')?.trim() ?? ''
+      if (youtubeIdRegex.test(videoId)) {
+        return {
+          ok: true,
+          provider: 'youtube',
+          normalizedUrl: `https://www.youtube.com/watch?v=${videoId}`,
+        }
+      }
+    }
+
+    if (parsed.pathname.startsWith('/shorts/')) {
+      const videoId = parsed.pathname.slice('/shorts/'.length).split('/')[0]?.trim() ?? ''
+      if (youtubeIdRegex.test(videoId)) {
+        return {
+          ok: true,
+          provider: 'youtube',
+          normalizedUrl: `https://www.youtube.com/shorts/${videoId}`,
+        }
+      }
+    }
+  }
+
+  if (host === 'youtu.be') {
+    const videoId = parsed.pathname.replace(/^\/+/, '').split('/')[0]?.trim() ?? ''
+    if (youtubeIdRegex.test(videoId)) {
+      return {
+        ok: true,
+        provider: 'youtube',
+        normalizedUrl: `https://www.youtube.com/watch?v=${videoId}`,
+      }
+    }
+  }
+
+  if (host === 'vimeo.com' || host === 'www.vimeo.com') {
+    const videoId = parsed.pathname.replace(/^\/+|\/+$/g, '').split('/')[0]?.trim() ?? ''
+    if (vimeoIdRegex.test(videoId)) {
+      return {
+        ok: true,
+        provider: 'vimeo',
+        normalizedUrl: `https://vimeo.com/${videoId}`,
+      }
+    }
+  }
+
+  if (host === 'player.vimeo.com' && parsed.pathname.startsWith('/video/')) {
+    const videoId = parsed.pathname.slice('/video/'.length).split('/')[0]?.trim() ?? ''
+    if (vimeoIdRegex.test(videoId)) {
+      return {
+        ok: true,
+        provider: 'vimeo',
+        normalizedUrl: `https://vimeo.com/${videoId}`,
+      }
+    }
+  }
+
+  return {
+    ok: false,
+    error:
+      'Use apenas links diretos do YouTube (youtube.com/watch?v=, youtu.be/ ou youtube.com/shorts/) ou Vimeo (vimeo.com/).',
+  }
 }
 
 export async function validateContributionFile(file: File): Promise<FileValidationResult> {
@@ -181,7 +325,7 @@ export async function validateContributionFile(file: File): Promise<FileValidati
   if (!extension) {
     return {
       ok: false,
-      error: 'O arquivo não possui extensão. Envie JPG, PNG, WEBP ou PDF.',
+      error: 'O arquivo não possui extensão. Envie JPG, PNG, WEBP, PDF, MP4 ou WEBM.',
     }
   }
 
@@ -189,13 +333,14 @@ export async function validateContributionFile(file: File): Promise<FileValidati
   if (!allExtensions.includes(extension)) {
     return {
       ok: false,
-      error: 'Formato não permitido. Envie fotografias em JPG, PNG ou WEBP, ou documentos em PDF.',
+      error:
+        'Formato não permitido. Envie fotografias (JPG, PNG, WEBP), documentos (PDF) ou vídeos curtos (MP4, WEBM).',
     }
   }
 
   let header: Uint8Array
   try {
-    header = new Uint8Array(await file.slice(0, 16).arrayBuffer())
+    header = new Uint8Array(await file.slice(0, 64).arrayBuffer())
   } catch {
     return { ok: false, error: 'Não foi possível ler o arquivo. Tente novamente.' }
   }
@@ -205,7 +350,7 @@ export async function validateContributionFile(file: File): Promise<FileValidati
     return {
       ok: false,
       error:
-        'O conteúdo do arquivo não corresponde a JPG, PNG, WEBP ou PDF. Renomear a extensão não é suficiente.',
+        'O conteúdo do arquivo não corresponde a JPG, PNG, WEBP, PDF, MP4 ou WEBM. Renomear a extensão não é suficiente.',
     }
   }
 
@@ -224,21 +369,38 @@ export async function validateContributionFile(file: File): Promise<FileValidati
     }
   }
 
-  const category: ValidatedFileCategory = format === 'pdf' ? 'documento' : 'fotografia'
-  const limit = format === 'pdf' ? MAX_PDF_BYTES : MAX_PHOTO_BYTES
+  const category: ValidatedFileCategory =
+    format === 'pdf'
+      ? 'documento'
+      : format === 'mp4' || format === 'webm'
+        ? 'video'
+        : 'fotografia'
+
+  const limit =
+    category === 'documento'
+      ? MAX_PDF_BYTES
+      : category === 'video'
+        ? MAX_VIDEO_BYTES
+        : MAX_PHOTO_BYTES
 
   if (file.size > limit) {
     return {
       ok: false,
       error:
-        format === 'pdf'
+        category === 'documento'
           ? 'O arquivo excede o limite de 15 MB para documentos PDF.'
-          : 'O arquivo excede o limite de 10 MB para fotografias.',
+          : category === 'video'
+            ? 'O vídeo excede o limite de 25 MB para envio direto (para vídeos maiores, use um link do YouTube ou Vimeo).'
+            : 'O arquivo excede o limite de 10 MB para fotografias.',
     }
   }
 
   if (category === 'fotografia') {
-    const validEnding = await hasValidImageEnding(file, format as Exclude<ValidatedFileFormat, 'pdf'>, header)
+    const validEnding = await hasValidImageEnding(
+      file,
+      format as 'jpg' | 'png' | 'webp',
+      header,
+    )
     const decodable = validEnding && (await canDecodeImage(file))
     if (!decodable) {
       return {
@@ -246,12 +408,20 @@ export async function validateContributionFile(file: File): Promise<FileValidati
         error: 'A imagem parece estar corrompida ou incompleta. Tente outro arquivo.',
       }
     }
-  } else {
+  } else if (category === 'documento') {
     const validEnding = await hasValidPdfEnding(file)
     if (!validEnding) {
       return {
         ok: false,
         error: 'O PDF parece estar corrompido ou incompleto. Verifique o arquivo e tente novamente.',
+      }
+    }
+  } else {
+    const validVideo = hasValidVideoStructure(file, format as 'mp4' | 'webm', header)
+    if (!validVideo) {
+      return {
+        ok: false,
+        error: 'O vídeo parece estar corrompido ou em um formato incompatível. Tente outro arquivo.',
       }
     }
   }

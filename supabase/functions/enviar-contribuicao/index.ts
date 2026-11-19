@@ -2,14 +2,15 @@ import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supa
 
 const MAX_PHOTO_BYTES = 10 * 1024 * 1024
 const MAX_PDF_BYTES = 15 * 1024 * 1024
-const MAX_REQUEST_BYTES = 17 * 1024 * 1024
+const MAX_VIDEO_BYTES = 25 * 1024 * 1024
+const MAX_REQUEST_BYTES = 27 * 1024 * 1024
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000
 const RATE_LIMIT_MAX = 5
 const MIN_FORM_TIME_MS = 2500
 const MAX_FORM_TIME_MS = 24 * 60 * 60 * 1000
 
-type FileFormat = 'jpg' | 'png' | 'webp' | 'pdf'
-type FileCategory = 'fotografia' | 'documento'
+type FileFormat = 'jpg' | 'png' | 'webp' | 'pdf' | 'mp4' | 'webm'
+type FileCategory = 'fotografia' | 'documento' | 'video'
 
 type ValidatedFile = {
   format: FileFormat
@@ -25,6 +26,8 @@ const FORMAT_LABELS: Record<FileFormat, string> = {
   png: 'PNG',
   webp: 'WEBP',
   pdf: 'PDF',
+  mp4: 'MP4',
+  webm: 'WebM',
 }
 
 const EXTENSIONS: Record<FileFormat, string[]> = {
@@ -32,6 +35,8 @@ const EXTENSIONS: Record<FileFormat, string[]> = {
   png: ['png'],
   webp: ['webp'],
   pdf: ['pdf'],
+  mp4: ['mp4'],
+  webm: ['webm'],
 }
 
 const MIME_TYPES: Record<FileFormat, string[]> = {
@@ -39,6 +44,8 @@ const MIME_TYPES: Record<FileFormat, string[]> = {
   png: ['image/png'],
   webp: ['image/webp'],
   pdf: ['application/pdf'],
+  mp4: ['video/mp4'],
+  webm: ['video/webm'],
 }
 
 const CANONICAL_MIME: Record<FileFormat, string> = {
@@ -46,9 +53,19 @@ const CANONICAL_MIME: Record<FileFormat, string> = {
   png: 'image/png',
   webp: 'image/webp',
   pdf: 'application/pdf',
+  mp4: 'video/mp4',
+  webm: 'video/webm',
 }
 
+const ALLOWED_MEDIA_TYPES = new Set<FileCategory>(['fotografia', 'video', 'documento'])
+
 const ALLOWED_CATEGORIES = new Set([
+  'video',
+  'historia_oral',
+  'paisagem',
+  'comunidade',
+  'mineracao',
+  'cultura_indigena',
   'fotografia',
   'documento',
   'objeto',
@@ -151,6 +168,20 @@ function detectFormat(bytes: Uint8Array): FileFormat | null {
     return 'pdf'
   }
 
+  if (bytes.length >= 12 && ascii(bytes, 4, 4) === 'ftyp') {
+    return 'mp4'
+  }
+
+  if (
+    bytes.length >= 4 &&
+    bytes[0] === 0x1a &&
+    bytes[1] === 0x45 &&
+    bytes[2] === 0xdf &&
+    bytes[3] === 0xa3
+  ) {
+    return 'webm'
+  }
+
   return null
 }
 
@@ -175,7 +206,7 @@ async function sha256Hex(value: string | Uint8Array): Promise<string> {
 
 function hasValidImageEnding(
   bytes: Uint8Array,
-  format: Exclude<FileFormat, 'pdf'>,
+  format: 'jpg' | 'png' | 'webp',
 ): boolean {
   if (format === 'webp') {
     if (bytes.length < 20) return false
@@ -204,6 +235,92 @@ function hasValidPdfEnding(bytes: Uint8Array): boolean {
   return containsAscii(tail, '%%EOF')
 }
 
+function hasValidVideoStructure(bytes: Uint8Array, format: 'mp4' | 'webm'): boolean {
+  if (bytes.length < 64) return false
+
+  if (format === 'mp4') {
+    if (ascii(bytes, 4, 4) !== 'ftyp') return false
+    const boxSize =
+      ((bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3]) >>> 0
+    return boxSize >= 16 && boxSize <= bytes.length
+  }
+
+  return (
+    bytes[0] === 0x1a &&
+    bytes[1] === 0x45 &&
+    bytes[2] === 0xdf &&
+    bytes[3] === 0xa3
+  )
+}
+
+function validateExternalVideoUrl(rawUrl: string): string {
+  const trimmed = rawUrl.trim()
+
+  if (!trimmed || trimmed.length > 512) {
+    throw new RequestError('Informe um link de vídeo válido com até 512 caracteres.')
+  }
+
+  let parsed: URL
+  try {
+    parsed = new URL(trimmed)
+  } catch {
+    throw new RequestError(
+      'Informe uma URL HTTPS válida do YouTube ou Vimeo.',
+    )
+  }
+
+  if (parsed.protocol !== 'https:' || parsed.username || parsed.password) {
+    throw new RequestError(
+      'Por segurança, apenas links HTTPS públicos do YouTube ou Vimeo são aceitos.',
+    )
+  }
+
+  const host = parsed.hostname.toLowerCase()
+  const youtubeIdRegex = /^[A-Za-z0-9_-]{11}$/
+  const vimeoIdRegex = /^\d{5,12}$/
+
+  if (host === 'youtube.com' || host === 'www.youtube.com' || host === 'm.youtube.com') {
+    if (parsed.pathname === '/watch') {
+      const videoId = parsed.searchParams.get('v')?.trim() ?? ''
+      if (youtubeIdRegex.test(videoId)) {
+        return `https://www.youtube.com/watch?v=${videoId}`
+      }
+    }
+
+    if (parsed.pathname.startsWith('/shorts/')) {
+      const videoId = parsed.pathname.slice('/shorts/'.length).split('/')[0]?.trim() ?? ''
+      if (youtubeIdRegex.test(videoId)) {
+        return `https://www.youtube.com/shorts/${videoId}`
+      }
+    }
+  }
+
+  if (host === 'youtu.be') {
+    const videoId = parsed.pathname.replace(/^\/+/, '').split('/')[0]?.trim() ?? ''
+    if (youtubeIdRegex.test(videoId)) {
+      return `https://www.youtube.com/watch?v=${videoId}`
+    }
+  }
+
+  if (host === 'vimeo.com' || host === 'www.vimeo.com') {
+    const videoId = parsed.pathname.replace(/^\/+|\/+$/g, '').split('/')[0]?.trim() ?? ''
+    if (vimeoIdRegex.test(videoId)) {
+      return `https://vimeo.com/${videoId}`
+    }
+  }
+
+  if (host === 'player.vimeo.com' && parsed.pathname.startsWith('/video/')) {
+    const videoId = parsed.pathname.slice('/video/'.length).split('/')[0]?.trim() ?? ''
+    if (vimeoIdRegex.test(videoId)) {
+      return `https://vimeo.com/${videoId}`
+    }
+  }
+
+  throw new RequestError(
+    'Use apenas links diretos do YouTube (youtube.com/watch?v=, youtu.be/ ou youtube.com/shorts/) ou Vimeo (vimeo.com/).',
+  )
+}
+
 async function validateFile(file: File): Promise<ValidatedFile> {
   if (!(file instanceof File)) {
     throw new RequestError('Selecione um arquivo válido.')
@@ -219,31 +336,42 @@ async function validateFile(file: File): Promise<ValidatedFile> {
     : ''
 
   if (!extension) {
-    throw new RequestError('O arquivo não possui extensão. Envie JPG, PNG, WEBP ou PDF.')
+    throw new RequestError(
+      'O arquivo não possui extensão. Envie JPG, PNG, WEBP, PDF, MP4 ou WEBM.',
+    )
   }
 
   const allExtensions = Object.values(EXTENSIONS).flat()
   if (!allExtensions.includes(extension)) {
     throw new RequestError(
-      'Formato não permitido. Envie fotografias em JPG, PNG ou WEBP, ou documentos em PDF.',
+      'Formato não permitido. Envie fotografias (JPG, PNG, WEBP), documentos (PDF) ou vídeos curtos (MP4, WEBM).',
     )
   }
 
-  if (file.size > MAX_PDF_BYTES) {
+  const extensionLimit =
+    extension === 'pdf'
+      ? MAX_PDF_BYTES
+      : extension === 'mp4' || extension === 'webm'
+        ? MAX_VIDEO_BYTES
+        : MAX_PHOTO_BYTES
+
+  if (file.size > extensionLimit) {
     throw new RequestError(
       extension === 'pdf'
         ? 'O arquivo excede o limite de 15 MB para documentos PDF.'
-        : 'O arquivo excede o limite de 10 MB para fotografias.',
+        : extension === 'mp4' || extension === 'webm'
+          ? 'O vídeo excede o limite de 25 MB para envio direto.'
+          : 'O arquivo excede o limite de 10 MB para fotografias.',
     )
   }
 
   const bytes = new Uint8Array(await file.arrayBuffer())
-  const header = bytes.subarray(0, 16)
+  const header = bytes.subarray(0, 64)
   const format = detectFormat(header)
 
   if (!format) {
     throw new RequestError(
-      'O conteúdo do arquivo não corresponde a JPG, PNG, WEBP ou PDF. Renomear a extensão não é suficiente.',
+      'O conteúdo do arquivo não corresponde a JPG, PNG, WEBP, PDF, MP4 ou WEBM. Renomear a extensão não é suficiente.',
     )
   }
 
@@ -260,14 +388,27 @@ async function validateFile(file: File): Promise<ValidatedFile> {
     )
   }
 
-  const category: FileCategory = format === 'pdf' ? 'documento' : 'fotografia'
-  const limit = format === 'pdf' ? MAX_PDF_BYTES : MAX_PHOTO_BYTES
+  const category: FileCategory =
+    format === 'pdf'
+      ? 'documento'
+      : format === 'mp4' || format === 'webm'
+        ? 'video'
+        : 'fotografia'
+
+  const limit =
+    category === 'documento'
+      ? MAX_PDF_BYTES
+      : category === 'video'
+        ? MAX_VIDEO_BYTES
+        : MAX_PHOTO_BYTES
 
   if (file.size > limit) {
     throw new RequestError(
-      format === 'pdf'
+      category === 'documento'
         ? 'O arquivo excede o limite de 15 MB para documentos PDF.'
-        : 'O arquivo excede o limite de 10 MB para fotografias.',
+        : category === 'video'
+          ? 'O vídeo excede o limite de 25 MB para envio direto.'
+          : 'O arquivo excede o limite de 10 MB para fotografias.',
     )
   }
 
@@ -275,6 +416,12 @@ async function validateFile(file: File): Promise<ValidatedFile> {
     if (!hasValidPdfEnding(bytes)) {
       throw new RequestError(
         'O PDF parece estar corrompido ou incompleto. Verifique o arquivo e tente novamente.',
+      )
+    }
+  } else if (format === 'mp4' || format === 'webm') {
+    if (!hasValidVideoStructure(bytes, format)) {
+      throw new RequestError(
+        'O vídeo parece estar corrompido ou em um formato incompatível. Tente outro arquivo.',
       )
     }
   } else if (!hasValidImageEnding(bytes, format)) {
@@ -307,8 +454,12 @@ function validateFields(form: FormData): {
   descricao: string
   autorizacao: boolean
   website: string
+  tipoMidia: FileCategory | null
+  periodoEstimado: string | null
+  localizacao: string | null
+  midiaExternaUrl: string | null
   formStartedAt: number
-  arquivo: File
+  arquivo: File | null
 } {
   const nome = readField(form, 'nome')
   const email = readField(form, 'email').toLowerCase()
@@ -318,10 +469,15 @@ function validateFields(form: FormData): {
   const descricao = readField(form, 'descricao')
   const autorizacao = readField(form, 'autorizacao') === 'true'
   const website = readField(form, 'website')
+  const rawTipoMidia = readField(form, 'tipo_midia')
+  const rawPeriodoEstimado = readField(form, 'periodo_estimado')
+  const rawLocalizacao = readField(form, 'localizacao')
+  const rawMidiaExternaUrl = readField(form, 'midia_externa_url')
   const rawElapsedMs = readField(form, 'form_elapsed_ms')
   const rawStartedAt = readField(form, 'form_started_at')
   const formStartedAt = Number(rawStartedAt)
-  const arquivo = form.get('arquivo')
+  const rawArquivo = form.get('arquivo')
+  const arquivo = rawArquivo instanceof File && rawArquivo.size > 0 ? rawArquivo : null
 
   if (website) {
     throw new RequestError('Não foi possível validar o envio.')
@@ -360,6 +516,22 @@ function validateFields(form: FormData): {
     throw new RequestError('Marque a autorização para que o museu analise a contribuição.')
   }
 
+  let tipoMidia: FileCategory | null = null
+  if (rawTipoMidia) {
+    if (!ALLOWED_MEDIA_TYPES.has(rawTipoMidia as FileCategory)) {
+      throw new RequestError('Tipo de mídia inválido. Use fotografia, video ou documento.')
+    }
+    tipoMidia = rawTipoMidia as FileCategory
+  }
+
+  if (rawPeriodoEstimado.length > 80) {
+    throw new RequestError('O período estimado deve ter no máximo 80 caracteres.')
+  }
+
+  if (rawLocalizacao.length > 120) {
+    throw new RequestError('A localização deve ter no máximo 120 caracteres.')
+  }
+
   if (rawElapsedMs !== '') {
     const formElapsedMs = Number(rawElapsedMs)
     if (
@@ -385,8 +557,25 @@ function validateFields(form: FormData): {
     }
   }
 
-  if (!(arquivo instanceof File)) {
-    throw new RequestError('Anexe uma fotografia ou um documento em PDF.')
+  let midiaExternaUrl: string | null = null
+  if (rawMidiaExternaUrl) {
+    midiaExternaUrl = validateExternalVideoUrl(rawMidiaExternaUrl)
+  }
+
+  if (arquivo && midiaExternaUrl) {
+    throw new RequestError(
+      'Envie um arquivo ou informe um link externo de vídeo, não ambos ao mesmo tempo.',
+    )
+  }
+
+  if (!arquivo && !midiaExternaUrl) {
+    throw new RequestError(
+      'Anexe uma fotografia, documento em PDF, vídeo curto ou informe um link válido do YouTube/Vimeo.',
+    )
+  }
+
+  if (midiaExternaUrl && tipoMidia && tipoMidia !== 'video') {
+    throw new RequestError('Links externos são permitidos apenas para o tipo de mídia vídeo.')
   }
 
   return {
@@ -398,6 +587,10 @@ function validateFields(form: FormData): {
     descricao,
     autorizacao,
     website,
+    tipoMidia,
+    periodoEstimado: rawPeriodoEstimado || null,
+    localizacao: rawLocalizacao || null,
+    midiaExternaUrl,
     formStartedAt,
     arquivo,
   }
@@ -511,56 +704,99 @@ async function handleRequest(request: Request): Promise<Response> {
 
     const form = await request.formData()
     const fields = validateFields(form)
-    const file = await validateFile(fields.arquivo)
-
-    const fileHash = await sha256Hex(file.bytes)
-    const storagePath = makeStoragePath(file.extension)
-
-    const { error: uploadError } = await supabase.storage
-      .from('contribuicoes')
-      .upload(storagePath, file.bytes, {
-        contentType: file.mime,
-        cacheControl: '3600',
-        upsert: false,
-      })
-
-    if (uploadError) {
-      console.error('[enviar-contribuicao] Falha no upload:', uploadError)
-      throw new RequestError(
-        'Não foi possível armazenar o arquivo. Tente novamente em alguns instantes.',
-        502,
-      )
-    }
 
     const id = crypto.randomUUID()
     const protocolo = makeProtocol()
 
-    const { error: insertError } = await supabase.from('contribuicoes').insert({
-      id,
-      protocolo,
-      nome: fields.nome,
-      email: fields.email,
-      telefone: fields.telefone || null,
-      titulo: fields.titulo,
-      categoria: fields.categoria,
-      descricao: fields.descricao,
-      autorizacao: fields.autorizacao,
-      arquivo_caminho: storagePath,
-      arquivo_nome_original: sanitizeFileName(fields.arquivo.name),
-      arquivo_mime: file.mime,
-      arquivo_tamanho: file.size,
-      arquivo_hash: fileHash,
-      status: 'pendente',
-      ip_hash: ipHash,
-    })
+    if (fields.arquivo) {
+      const file = await validateFile(fields.arquivo)
+      if (fields.tipoMidia && fields.tipoMidia !== file.category) {
+        throw new RequestError(
+          `O arquivo enviado (${file.category}) não corresponde ao tipo de mídia selecionado (${fields.tipoMidia}).`,
+        )
+      }
 
-    if (insertError) {
-      console.error('[enviar-contribuicao] Falha ao registrar contribuição:', insertError)
-      await supabase.storage.from('contribuicoes').remove([storagePath])
-      throw new RequestError(
-        'Não foi possível registrar a contribuição. Tente novamente em alguns instantes.',
-        500,
-      )
+      const fileHash = await sha256Hex(file.bytes)
+      const storagePath = makeStoragePath(file.extension)
+
+      const { error: uploadError } = await supabase.storage
+        .from('contribuicoes')
+        .upload(storagePath, file.bytes, {
+          contentType: file.mime,
+          cacheControl: '3600',
+          upsert: false,
+        })
+
+      if (uploadError) {
+        console.error('[enviar-contribuicao] Falha no upload:', uploadError)
+        throw new RequestError(
+          'Não foi possível armazenar o arquivo. Tente novamente em alguns instantes.',
+          502,
+        )
+      }
+
+      const { error: insertError } = await supabase.from('contribuicoes').insert({
+        id,
+        protocolo,
+        nome: fields.nome,
+        email: fields.email,
+        telefone: fields.telefone || null,
+        titulo: fields.titulo,
+        categoria: fields.categoria,
+        descricao: fields.descricao,
+        autorizacao: fields.autorizacao,
+        tipo_midia: file.category,
+        periodo_estimado: fields.periodoEstimado,
+        localizacao: fields.localizacao,
+        midia_externa_url: null,
+        arquivo_caminho: storagePath,
+        arquivo_nome_original: sanitizeFileName(fields.arquivo.name),
+        arquivo_mime: file.mime,
+        arquivo_tamanho: file.size,
+        arquivo_hash: fileHash,
+        status: 'pendente',
+        ip_hash: ipHash,
+      })
+
+      if (insertError) {
+        console.error('[enviar-contribuicao] Falha ao registrar contribuição:', insertError)
+        await supabase.storage.from('contribuicoes').remove([storagePath])
+        throw new RequestError(
+          'Não foi possível registrar a contribuição. Tente novamente em alguns instantes.',
+          500,
+        )
+      }
+    } else {
+      const { error: insertError } = await supabase.from('contribuicoes').insert({
+        id,
+        protocolo,
+        nome: fields.nome,
+        email: fields.email,
+        telefone: fields.telefone || null,
+        titulo: fields.titulo,
+        categoria: fields.categoria,
+        descricao: fields.descricao,
+        autorizacao: fields.autorizacao,
+        tipo_midia: 'video',
+        periodo_estimado: fields.periodoEstimado,
+        localizacao: fields.localizacao,
+        midia_externa_url: fields.midiaExternaUrl,
+        arquivo_caminho: null,
+        arquivo_nome_original: null,
+        arquivo_mime: null,
+        arquivo_tamanho: null,
+        arquivo_hash: null,
+        status: 'pendente',
+        ip_hash: ipHash,
+      })
+
+      if (insertError) {
+        console.error('[enviar-contribuicao] Falha ao registrar vídeo externo:', insertError)
+        throw new RequestError(
+          'Não foi possível registrar a contribuição. Tente novamente em alguns instantes.',
+          500,
+        )
+      }
     }
 
     return jsonResponse({ ok: true, id, protocolo }, 201, origin)

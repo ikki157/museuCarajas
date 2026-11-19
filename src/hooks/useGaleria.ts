@@ -12,8 +12,7 @@ type UseGaleriaResult = {
   refresh: () => void
 }
 
-const GALERIA_FIELDS =
-  'id,titulo,descricao,categoria,caminho_storage,arquivo_url,formato,credito,publicado,criado_em,atualizado_em'
+const GALERIA_FIELDS = '*'
 
 export function useGaleria(): UseGaleriaResult {
   const [items, setItems] = useState<GaleriaItem[]>([])

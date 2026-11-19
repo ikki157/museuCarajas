@@ -5,6 +5,7 @@ import { Header } from './components/layout/Header'
 import { Preloader } from './components/ui/Preloader'
 import { getActiveLenis, useSmoothScroll } from './hooks/useSmoothScroll'
 import { ScrollTrigger } from './lib/gsap'
+import { AdminPage } from './pages/AdminPage'
 import { ContributePage } from './pages/ContributePage'
 import { HomePage } from './pages/HomePage'
 
@@ -70,20 +71,23 @@ function ScrollManager() {
 
 export default function App() {
   useSmoothScroll()
+  const { pathname } = useLocation()
+  const isAdminRoute = pathname === '/admin' || pathname.startsWith('/admin/')
 
   return (
     <div className="min-h-screen bg-parchment">
       <Preloader />
       <ScrollManager />
-      <Header />
+      {!isAdminRoute ? <Header /> : null}
       <main id="conteudo">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/contribua" element={<ContributePage />} />
+          <Route path="/admin" element={<AdminPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
-      <Footer />
+      {!isAdminRoute ? <Footer /> : null}
     </div>
   )
 }

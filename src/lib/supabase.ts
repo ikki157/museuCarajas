@@ -37,9 +37,9 @@ if (usesSecretKey && import.meta.env.DEV) {
 export const supabase: SupabaseClient | null = isSupabaseConfigured
   ? createClient(rawUrl, rawKey, {
     auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-      detectSessionInUrl: false,
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
     },
   })
   : null

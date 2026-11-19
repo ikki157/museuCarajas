@@ -103,11 +103,7 @@ export function Hero() {
       />
 
       <div className="hero-content site-container relative flex flex-1 flex-col pb-28 pt-32 will-change-transform md:pb-32">
-        <div className="mx-auto flex max-w-4xl flex-1 flex-col items-center justify-center text-center">
-          <p className="hero-eyebrow eyebrow text-parchment/85">
-            <span>Acervo Digital · Região de Carajás</span>
-          </p>
-
+        <div className="mx-auto flex max-w-4xl flex-1 flex-col items-start justify-center">
           <h1
             id="hero-title"
             className="display mt-6 text-[clamp(3.5rem,9vw,7.4rem)] font-medium leading-[0.94] tracking-[-0.035em]"

@@ -41,7 +41,7 @@ type MediaFilter = typeof ALL_MEDIA | GaleriaMediaType
 
 const MEDIA_FILTERS: ReadonlyArray<{ value: MediaFilter; label: string }> = [
   { value: 'todos', label: 'Todos' },
-  { value: 'fotografia', label: 'Fotografias' },
+  { value: 'fotografia', label: 'Fotos' },
   { value: 'video', label: 'Vídeos' },
   { value: 'documento', label: 'Documentos' },
 ]
@@ -155,13 +155,13 @@ function CoverflowCard({
         disabled={isCenter && !canOpen}
         aria-label={actionLabel}
         className={cn(
-          'group relative block aspect-[3/4] w-[260px] overflow-hidden rounded-[24px] bg-forest-deep text-left transition duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] sm:w-[300px] lg:w-[330px]',
+          'group relative block aspect-[3/4] w-[260px] overflow-hidden rounded-[24px] bg-forest-deep text-left ring-1 ring-parchment/15 transition duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] sm:w-[300px] lg:w-[330px]',
           isCenter &&
-            'shadow-[0_32px_70px_-24px_rgba(21,34,28,0.45)] hover:-translate-y-1.5',
+            'ring-parchment/25 shadow-[0_32px_70px_-24px_rgba(5,12,9,0.75)] hover:-translate-y-1.5',
           isAdjacent &&
-            'shadow-[0_22px_50px_-24px_rgba(21,34,28,0.35)] brightness-[0.88] hover:scale-[1.036] hover:brightness-100',
+            'shadow-[0_22px_50px_-24px_rgba(5,12,9,0.65)] brightness-[0.88] hover:scale-[1.036] hover:brightness-100',
           isOuter &&
-            'shadow-[0_16px_40px_-24px_rgba(21,34,28,0.28)] brightness-[0.75] hover:brightness-90',
+            'shadow-[0_16px_40px_-24px_rgba(5,12,9,0.55)] brightness-[0.75] hover:brightness-90',
           isCenter && !canOpen && 'cursor-default',
         )}
       >
@@ -317,7 +317,7 @@ function GallerySkeleton() {
               opacity,
               transform: `translate3d(${xPct - 50}%, -50%, 0) scale(${scale})`,
             }}
-            className="animate-shimmer absolute left-1/2 top-1/2 aspect-[3/4] w-[260px] rounded-[24px] bg-[linear-gradient(90deg,#c3cbbd_25%,#dce2d6_50%,#c3cbbd_75%)] sm:w-[300px] lg:w-[330px]"
+            className="animate-shimmer absolute left-1/2 top-1/2 aspect-[3/4] w-[260px] rounded-[24px] bg-[linear-gradient(90deg,rgba(44,64,54,0.5)_25%,rgba(79,102,88,0.42)_50%,rgba(44,64,54,0.5)_75%)] ring-1 ring-parchment/10 sm:w-[300px] lg:w-[330px]"
           />
         )
       })}
@@ -582,42 +582,43 @@ export function Gallery() {
         ) : null}
 
         {showFilters ? (
-          <div className="mx-auto mt-10 max-w-4xl space-y-4">
-            <div className="relative mx-auto w-full max-w-md">
-              <label htmlFor="galeria-busca" className="sr-only">
-                Buscar registros por título, período, local ou tag
-              </label>
-              <Search
-                size={15}
-                strokeWidth={1.75}
-                aria-hidden="true"
-                className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-stone/80"
-              />
-              <input
-                id="galeria-busca"
-                type="search"
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Buscar por título, década, local ou tag…"
-                className="w-full rounded-full border border-ink/15 bg-cream/80 py-2.5 pl-10 pr-10 text-[14px] text-ink transition-colors placeholder:text-stone/75 focus:border-forest focus:bg-cream focus:outline-none [&::-webkit-search-cancel-button]:appearance-none"
-              />
-              {searchQuery ? (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  aria-label="Limpar busca"
-                  className="absolute right-3 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-stone transition-colors hover:bg-parchment hover:text-ink"
-                >
-                  <X size={14} strokeWidth={1.8} aria-hidden="true" />
-                </button>
-              ) : null}
-            </div>
+          <div className="mx-auto mt-10 max-w-4xl">
+            {/* Tier 1: Search pill + Media Type segmented control */}
+            <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <div className="relative w-full sm:w-80">
+                <label htmlFor="galeria-busca" className="sr-only">
+                  Buscar registros por título, período, local ou tag
+                </label>
+                <Search
+                  size={15}
+                  strokeWidth={1.75}
+                  aria-hidden="true"
+                  className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-stone/80"
+                />
+                <input
+                  id="galeria-busca"
+                  type="search"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="Buscar por título, década, local ou tag…"
+                  className="w-full rounded-full border border-ink/15 bg-cream/90 py-2.5 pl-10 pr-9 text-[13.5px] text-ink transition-colors placeholder:text-stone/75 focus:border-forest focus:bg-cream focus:outline-none [&::-webkit-search-cancel-button]:appearance-none"
+                />
+                {searchQuery ? (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    aria-label="Limpar busca"
+                    className="absolute right-2.5 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-stone transition-colors hover:bg-parchment hover:text-ink"
+                  >
+                    <X size={14} strokeWidth={1.8} aria-hidden="true" />
+                  </button>
+                ) : null}
+              </div>
 
-            <div className="flex flex-wrap items-center justify-center gap-2">
               <div
                 role="group"
                 aria-label="Filtrar galeria por tipo de mídia"
-                className="flex flex-wrap items-center justify-center gap-2"
+                className="no-scrollbar inline-flex max-w-full items-center overflow-x-auto rounded-full border border-ink/10 bg-ink/[0.07] p-1"
               >
                 {MEDIA_FILTERS.map((option) => {
                   const isActive = selectedMediaType === option.value
@@ -632,10 +633,10 @@ export function Gallery() {
                         syncGalleryUrl(option.value, selectedCategory, null)
                       }}
                       className={cn(
-                        'rounded-full border px-4 py-1.5 text-[13px] font-medium transition-colors',
+                        'shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[12.5px] font-medium transition-colors',
                         isActive
-                          ? 'border-forest bg-forest text-cream'
-                          : 'border-ink/25 bg-transparent text-ink/80 hover:border-forest hover:text-forest',
+                          ? 'bg-forest text-cream shadow-sm'
+                          : 'text-ink/70 hover:text-ink',
                       )}
                     >
                       {option.label}
@@ -643,13 +644,13 @@ export function Gallery() {
                   )
                 })}
               </div>
+            </div>
 
-              {categories.length > 0 ? (
-                <span
-                  aria-hidden="true"
-                  className="mx-1 hidden h-4 w-px bg-ink/15 sm:inline-block"
-                />
-              ) : null}
+            {/* Tier 2: Categories row */}
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-2 border-t border-ink/10 pt-4">
+              <span className="mr-1 text-[11px] font-medium uppercase tracking-[0.16em] text-stone/80">
+                Categorias
+              </span>
 
               <div
                 role="group"
@@ -665,10 +666,10 @@ export function Gallery() {
                     syncGalleryUrl(selectedMediaType, ALL_CATEGORIES, null)
                   }}
                   className={cn(
-                    'rounded-full border px-4 py-1.5 text-[13px] font-medium transition-colors',
+                    'rounded-full border px-3.5 py-1 text-[12.5px] transition-colors',
                     selectedCategory === ALL_CATEGORIES
-                      ? 'border-forest bg-forest text-cream'
-                      : 'border-ink/25 bg-transparent text-ink/80 hover:border-forest hover:text-forest',
+                      ? 'border-forest/35 bg-ink/12 font-semibold text-forest'
+                      : 'border-ink/15 bg-transparent font-medium text-ink/65 hover:border-ink/35 hover:text-ink',
                   )}
                 >
                   Todas
@@ -687,10 +688,10 @@ export function Gallery() {
                         syncGalleryUrl(selectedMediaType, category, null)
                       }}
                       className={cn(
-                        'rounded-full border px-4 py-1.5 text-[13px] font-medium transition-colors',
+                        'rounded-full border px-3.5 py-1 text-[12.5px] transition-colors',
                         isActive
-                          ? 'border-forest bg-forest text-cream'
-                          : 'border-ink/25 bg-transparent text-ink/80 hover:border-forest hover:text-forest',
+                          ? 'border-forest/35 bg-ink/12 font-semibold text-forest'
+                          : 'border-ink/15 bg-transparent font-medium text-ink/65 hover:border-ink/35 hover:text-ink',
                       )}
                     >
                       {category}
@@ -699,9 +700,14 @@ export function Gallery() {
                 })}
               </div>
 
+              <span
+                aria-hidden="true"
+                className="mx-1 hidden h-4 w-px bg-ink/15 sm:inline-block"
+              />
+
               <Link
                 to="/contribua"
-                className="inline-flex items-center gap-1.5 rounded-full border border-forest/45 bg-cream/75 px-4 py-1.5 text-[13px] font-medium text-forest transition-colors hover:border-forest hover:bg-forest hover:text-cream"
+                className="inline-flex items-center gap-1.5 rounded-full border border-ink/20 bg-cream/70 px-3.5 py-1 text-[12.5px] font-medium text-forest transition-colors hover:border-forest hover:bg-forest hover:text-cream"
               >
                 Enviar registro
                 <ArrowRight size={13} strokeWidth={1.8} aria-hidden="true" />
@@ -710,145 +716,158 @@ export function Gallery() {
           </div>
         ) : null}
 
-        <div className="mt-10" aria-busy={loading}>
-          {loading ? (
-            <GallerySkeleton />
-          ) : !isSupabaseConfigured ? (
-            <div className="mx-auto max-w-3xl rounded-[36px] bg-cream px-6 py-14 text-center sm:px-10 sm:py-20">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-line text-stone">
-                <ImageOff size={23} strokeWidth={1.4} aria-hidden="true" />
-              </div>
-              <h3 className="display mt-6 text-[clamp(1.6rem,3vw,2.2rem)] font-medium text-forest">
-                Acervo digital em preparação
-              </h3>
-              <p className="mx-auto mt-3 max-w-lg text-[14px] leading-relaxed text-stone">
-                Fotografias, vídeos e documentos serão exibidos aqui assim que a
-                conexão com o acervo digital do museu for configurada.
-              </p>
+        {/* Framed misty-forest alcove behind the Coverflow carousel */}
+        <div
+          aria-busy={loading}
+          className="relative mt-10 overflow-hidden rounded-[36px] bg-forest-deep px-4 py-10 shadow-[0_30px_80px_-40px_rgba(16,33,25,0.55)] sm:rounded-[48px] sm:px-8 sm:py-14"
+        >
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(79,102,88,0.38)_0%,rgba(21,34,28,0.92)_68%,rgba(15,25,20,1)_100%)]"
+          />
 
-              {import.meta.env.DEV ? (
-                <details className="mx-auto mt-7 max-w-2xl rounded-2xl border border-dashed border-stone/40 bg-parchment p-4 text-left">
-                  <summary className="cursor-pointer text-xs font-semibold uppercase tracking-[0.14em] text-forest">
-                    Instruções para o ambiente de desenvolvimento
-                  </summary>
-                  <div className="mt-3 space-y-2 font-mono text-xs leading-relaxed text-stone">
-                    <p>
-                      1. Copie .env.example para .env.local e preencha as
-                      variáveis do Supabase.
-                    </p>
-                    <p>
-                      2. Execute as migrações SQL em supabase/migrations.
-                    </p>
-                    <p>3. Publique a Edge Function e rode npm run seed:galeria.</p>
-                    {supabaseConfigIssue ? (
-                      <p className="text-clay">{supabaseConfigIssue}</p>
-                    ) : null}
-                  </div>
-                </details>
-              ) : null}
-            </div>
-          ) : error && !hasItems ? (
-            <div className="mx-auto max-w-3xl rounded-[36px] border border-line bg-cream px-6 py-14 text-center sm:py-20">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-line text-forest">
-                <AlertCircle size={23} strokeWidth={1.5} aria-hidden="true" />
+          <div className="relative z-10">
+            {loading ? (
+              <GallerySkeleton />
+            ) : !isSupabaseConfigured ? (
+              <div className="mx-auto max-w-2xl px-4 py-10 text-center sm:py-14">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-parchment/25 text-parchment/75">
+                  <ImageOff size={23} strokeWidth={1.4} aria-hidden="true" />
+                </div>
+                <h3 className="display mt-6 text-[clamp(1.6rem,3vw,2.2rem)] font-medium text-parchment">
+                  Acervo digital em preparação
+                </h3>
+                <p className="mx-auto mt-3 max-w-lg text-[14px] leading-relaxed text-parchment/75">
+                  Fotografias, vídeos e documentos serão exibidos aqui assim que
+                  a conexão com o acervo digital do museu for configurada.
+                </p>
+
+                {import.meta.env.DEV ? (
+                  <details className="mx-auto mt-7 max-w-2xl rounded-2xl border border-dashed border-parchment/25 bg-forest/60 p-4 text-left">
+                    <summary className="cursor-pointer text-xs font-semibold uppercase tracking-[0.14em] text-parchment">
+                      Instruções para o ambiente de desenvolvimento
+                    </summary>
+                    <div className="mt-3 space-y-2 font-mono text-xs leading-relaxed text-parchment/80">
+                      <p>
+                        1. Copie .env.example para .env.local e preencha as
+                        variáveis do Supabase.
+                      </p>
+                      <p>
+                        2. Execute as migrações SQL em supabase/migrations.
+                      </p>
+                      <p>
+                        3. Publique a Edge Function e rode npm run seed:galeria.
+                      </p>
+                      {supabaseConfigIssue ? (
+                        <p className="text-copper-light">{supabaseConfigIssue}</p>
+                      ) : null}
+                    </div>
+                  </details>
+                ) : null}
               </div>
-              <h3 className="display mt-6 text-[clamp(1.6rem,3vw,2.2rem)] font-medium text-forest">
-                Não foi possível carregar o acervo
-              </h3>
-              <p className="mx-auto mt-3 max-w-lg text-[14px] leading-relaxed text-stone">
-                {error}
-              </p>
-              <button
-                type="button"
-                onClick={refresh}
-                className="group mt-7 inline-flex items-center gap-2 rounded-full border border-forest/60 px-7 py-3 text-[12px] font-medium tracking-[0.06em] text-forest transition hover:bg-forest hover:text-cream"
-              >
-                <RefreshCw size={14} strokeWidth={1.7} aria-hidden="true" />
-                Tentar novamente
-              </button>
-            </div>
-          ) : filteredItems.length === 0 ? (
-            <div className="mx-auto max-w-3xl rounded-[36px] bg-cream px-6 py-14 text-center sm:py-20">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-line text-stone">
-                <ImageOff size={23} strokeWidth={1.4} aria-hidden="true" />
-              </div>
-              <h3 className="display mt-6 text-[clamp(1.6rem,3vw,2.2rem)] font-medium text-forest">
-                {hasActiveFilters
-                  ? 'Nenhum registro encontrado para este filtro'
-                  : 'Nenhum registro publicado ainda'}
-              </h3>
-              <p className="mx-auto mt-3 max-w-lg text-[14px] leading-relaxed text-stone">
-                {hasActiveFilters
-                  ? 'Ajuste a busca, o tipo de mídia ou a categoria para continuar explorando o acervo.'
-                  : 'Novos registros aparecerão aqui automaticamente quando forem publicados pela equipe curatorial.'}
-              </p>
-              {hasActiveFilters ? (
+            ) : error && !hasItems ? (
+              <div className="mx-auto max-w-2xl px-4 py-10 text-center sm:py-14">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-parchment/25 text-parchment">
+                  <AlertCircle size={23} strokeWidth={1.5} aria-hidden="true" />
+                </div>
+                <h3 className="display mt-6 text-[clamp(1.6rem,3vw,2.2rem)] font-medium text-parchment">
+                  Não foi possível carregar o acervo
+                </h3>
+                <p className="mx-auto mt-3 max-w-lg text-[14px] leading-relaxed text-parchment/75">
+                  {error}
+                </p>
                 <button
                   type="button"
-                  onClick={() => {
-                    setSelectedMediaType(ALL_MEDIA)
-                    setSelectedCategory(ALL_CATEGORIES)
-                    setSearchQuery('')
-                    syncGalleryUrl(ALL_MEDIA, ALL_CATEGORIES, null)
-                  }}
-                  className="mt-7 inline-flex items-center gap-2 rounded-full border border-forest/60 px-7 py-3 text-[12px] font-medium tracking-[0.06em] text-forest transition hover:bg-forest hover:text-cream"
+                  onClick={refresh}
+                  className="group mt-7 inline-flex items-center gap-2 rounded-full border border-parchment/35 px-7 py-3 text-[12px] font-medium tracking-[0.06em] text-parchment transition hover:border-parchment hover:bg-parchment hover:text-forest-deep"
                 >
-                  Limpar filtros
-                </button>
-              ) : null}
-            </div>
-          ) : (
-            <>
-              <div
-                ref={stageRef}
-                role="region"
-                aria-roledescription="carrossel"
-                aria-label="Acervo digital em carrossel interativo"
-                onTouchStart={handleTouchStart}
-                onTouchEnd={handleTouchEnd}
-                className="relative mx-auto flex h-[420px] w-full max-w-6xl touch-pan-y select-none items-center justify-center overflow-hidden sm:h-[480px] lg:h-[520px]"
-              >
-                {filteredItems.map((item, index) => {
-                  const delta = index - safeActiveIndex
-                  if (Math.abs(delta) > 3) return null
-
-                  return (
-                    <CoverflowCard
-                      key={item.id}
-                      item={item}
-                      delta={delta}
-                      onSelect={() => setActiveIndex(index)}
-                      onOpen={() => {
-                        setLightboxId(item.id)
-                        syncGalleryUrl(selectedMediaType, selectedCategory, item.id)
-                      }}
-                    />
-                  )
-                })}
-              </div>
-
-              <div className="mt-6 flex items-center justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={handlePrev}
-                  disabled={!canPrev}
-                  aria-label="Registro anterior"
-                  className="flex h-11 w-11 items-center justify-center rounded-full border border-ink/30 text-ink transition hover:border-forest hover:bg-forest hover:text-cream disabled:cursor-not-allowed disabled:opacity-30"
-                >
-                  <ArrowLeft size={18} strokeWidth={1.75} aria-hidden="true" />
-                </button>
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  disabled={!canNext}
-                  aria-label="Próximo registro"
-                  className="flex h-11 w-11 items-center justify-center rounded-full border border-ink/30 text-ink transition hover:border-forest hover:bg-forest hover:text-cream disabled:cursor-not-allowed disabled:opacity-30"
-                >
-                  <ArrowRight size={18} strokeWidth={1.75} aria-hidden="true" />
+                  <RefreshCw size={14} strokeWidth={1.7} aria-hidden="true" />
+                  Tentar novamente
                 </button>
               </div>
-            </>
-          )}
+            ) : filteredItems.length === 0 ? (
+              <div className="mx-auto max-w-2xl px-4 py-10 text-center sm:py-14">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-parchment/25 text-parchment/75">
+                  <ImageOff size={23} strokeWidth={1.4} aria-hidden="true" />
+                </div>
+                <h3 className="display mt-6 text-[clamp(1.6rem,3vw,2.2rem)] font-medium text-parchment">
+                  {hasActiveFilters
+                    ? 'Nenhum registro encontrado para este filtro'
+                    : 'Nenhum registro publicado ainda'}
+                </h3>
+                <p className="mx-auto mt-3 max-w-lg text-[14px] leading-relaxed text-parchment/75">
+                  {hasActiveFilters
+                    ? 'Ajuste a busca, o tipo de mídia ou a categoria para continuar explorando o acervo.'
+                    : 'Novos registros aparecerão aqui automaticamente quando forem publicados pela equipe curatorial.'}
+                </p>
+                {hasActiveFilters ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedMediaType(ALL_MEDIA)
+                      setSelectedCategory(ALL_CATEGORIES)
+                      setSearchQuery('')
+                      syncGalleryUrl(ALL_MEDIA, ALL_CATEGORIES, null)
+                    }}
+                    className="mt-7 inline-flex items-center gap-2 rounded-full border border-parchment/35 px-7 py-3 text-[12px] font-medium tracking-[0.06em] text-parchment transition hover:border-parchment hover:bg-parchment hover:text-forest-deep"
+                  >
+                    Limpar filtros
+                  </button>
+                ) : null}
+              </div>
+            ) : (
+              <>
+                <div
+                  ref={stageRef}
+                  role="region"
+                  aria-roledescription="carrossel"
+                  aria-label="Acervo digital em carrossel interativo"
+                  onTouchStart={handleTouchStart}
+                  onTouchEnd={handleTouchEnd}
+                  className="relative mx-auto flex h-[420px] w-full max-w-6xl touch-pan-y select-none items-center justify-center overflow-hidden sm:h-[480px] lg:h-[520px]"
+                >
+                  {filteredItems.map((item, index) => {
+                    const delta = index - safeActiveIndex
+                    if (Math.abs(delta) > 3) return null
+
+                    return (
+                      <CoverflowCard
+                        key={item.id}
+                        item={item}
+                        delta={delta}
+                        onSelect={() => setActiveIndex(index)}
+                        onOpen={() => {
+                          setLightboxId(item.id)
+                          syncGalleryUrl(selectedMediaType, selectedCategory, item.id)
+                        }}
+                      />
+                    )
+                  })}
+                </div>
+
+                <div className="mt-6 flex items-center justify-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handlePrev}
+                    disabled={!canPrev}
+                    aria-label="Registro anterior"
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-parchment/30 text-parchment transition hover:border-parchment hover:bg-parchment hover:text-forest-deep disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    <ArrowLeft size={18} strokeWidth={1.75} aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    disabled={!canNext}
+                    aria-label="Próximo registro"
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-parchment/30 text-parchment transition hover:border-parchment hover:bg-parchment hover:text-forest-deep disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    <ArrowRight size={18} strokeWidth={1.75} aria-hidden="true" />
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 

@@ -59,7 +59,7 @@ export function Logo({ tone = 'dark', className, compact = false, variant = 'def
             Museu Carajás<span className="text-[#c83e37]">.</span>
           </span>
           <span className="mt-1 text-[10px] font-medium uppercase tracking-[0.22em] opacity-80">
-            Acervo Digital · Memória Regional
+            Memória Regional
           </span>
         </span>
       </span>

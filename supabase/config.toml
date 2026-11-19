@@ -15,7 +15,7 @@ shadow_port = 54320
 enabled = true
 port = 54323
 
-[inbucket]
+[local_smtp]
 enabled = true
 port = 54324
 
@@ -31,7 +31,7 @@ jwt_expiry = 3600
 enable_signup = false
 
 [auth.email]
-enable_signup = false
+enabled = false
 enable_confirmations = false
 
 [functions.enviar-contribuicao]
